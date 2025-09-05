@@ -61,7 +61,7 @@ export class WeatherService {
         humidity: weatherResponse.main.humidity,
         uv_index: Math.round(uvIndex),
         conditions: weatherResponse.weather[0].main.toLowerCase(),
-        location: `${weatherResponse.name}, ${weatherResponse.sys.country}`
+        location: `${weatherResponse.name}, ${weatherResponse.sys.country}`,
       }
     } catch (error) {
       console.error('Failed to fetch weather data:', error)
@@ -69,29 +69,35 @@ export class WeatherService {
     }
   }
 
-  private static async fetchWithRetry(url: string, attempt: number = 1): Promise<Record<string, unknown>> {
+  private static async fetchWithRetry(
+    url: string,
+    attempt: number = 1
+  ): Promise<Record<string, unknown>> {
     try {
       const response = await fetch(url)
-      
+
       if (!response.ok) {
         throw new Error(`API error: ${response.status} - ${response.statusText}`)
       }
-      
+
       return await response.json()
     } catch (error) {
       if (attempt < this.MAX_RETRY_ATTEMPTS) {
-        console.warn(`API call failed (attempt ${attempt}/${this.MAX_RETRY_ATTEMPTS}), retrying...`, error)
+        console.warn(
+          `API call failed (attempt ${attempt}/${this.MAX_RETRY_ATTEMPTS}), retrying...`,
+          error
+        )
         await new Promise(resolve => setTimeout(resolve, this.RETRY_DELAY_MS * attempt))
         return this.fetchWithRetry(url, attempt + 1)
       }
-      
+
       throw error
     }
   }
 
   static generateWeatherRecommendations(weatherData: WeatherData): WeatherRecommendations {
     const { temperature, humidity, uv_index, conditions } = weatherData
-    
+
     let chlorine_adjustment = ''
     let maintenance_priority = 'normal'
     let testing_frequency = 'weekly'
@@ -99,7 +105,8 @@ export class WeatherService {
 
     // Temperature-based recommendations
     if (temperature > 85) {
-      chlorine_adjustment = 'Consider increasing chlorine by 20-30% due to high temperature accelerating chlorine consumption.'
+      chlorine_adjustment =
+        'Consider increasing chlorine by 20-30% due to high temperature accelerating chlorine consumption.'
       maintenance_priority = 'high'
       testing_frequency = 'every 2-3 days'
       weather_notes = 'High temperatures increase bather load and chemical consumption.'
@@ -113,7 +120,8 @@ export class WeatherService {
 
     // UV Index considerations
     if (uv_index > 7) {
-      chlorine_adjustment += ' High UV levels will rapidly break down chlorine - consider stabilizer levels.'
+      chlorine_adjustment +=
+        ' High UV levels will rapidly break down chlorine - consider stabilizer levels.'
       maintenance_priority = 'high'
       testing_frequency = 'daily during peak sun hours'
     } else if (uv_index > 3) {
@@ -132,7 +140,8 @@ export class WeatherService {
 
     // Humidity considerations
     if (humidity > 70) {
-      weather_notes += ' High humidity may increase bather comfort but can affect chemical evaporation rates.'
+      weather_notes +=
+        ' High humidity may increase bather comfort but can affect chemical evaporation rates.'
     } else if (humidity < 30) {
       weather_notes += ' Low humidity increases evaporation - monitor water levels.'
     }
@@ -141,13 +150,16 @@ export class WeatherService {
       chlorine_adjustment,
       maintenance_priority,
       testing_frequency,
-      weather_notes: weather_notes.trim()
+      weather_notes: weather_notes.trim(),
     }
   }
 
-  static async getLocationBasedRecommendations(latitude: number, longitude: number): Promise<WeatherRecommendations | null> {
+  static async getLocationBasedRecommendations(
+    latitude: number,
+    longitude: number
+  ): Promise<WeatherRecommendations | null> {
     const weatherData = await this.getWeatherData(latitude, longitude)
-    
+
     if (!weatherData) {
       return null
     }

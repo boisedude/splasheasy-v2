@@ -8,13 +8,13 @@ This guide explains how to rollback changes when a future Claude context window 
 
 ## ⚡ Quick Reference
 
-| Scenario | Command | Safety Level |
-|----------|---------|--------------|
-| **Undo last commit (safe)** | `git reset --soft HEAD~1` | 🟢 Safe |
-| **Undo last commit (destructive)** | `git reset --hard HEAD~1` | 🔴 Dangerous |
-| **Rollback one file** | `git checkout HEAD~1 -- file.tsx` | 🟢 Safe |
-| **Rollback deployment** | `npx vercel rollback --token [token]` | 🟡 Medium |
-| **Emergency restore** | `git reset --hard origin/main` | 🔴 Nuclear |
+| Scenario                           | Command                               | Safety Level |
+| ---------------------------------- | ------------------------------------- | ------------ |
+| **Undo last commit (safe)**        | `git reset --soft HEAD~1`             | 🟢 Safe      |
+| **Undo last commit (destructive)** | `git reset --hard HEAD~1`             | 🔴 Dangerous |
+| **Rollback one file**              | `git checkout HEAD~1 -- file.tsx`     | 🟢 Safe      |
+| **Rollback deployment**            | `npx vercel rollback --token [token]` | 🟡 Medium    |
+| **Emergency restore**              | `git reset --hard origin/main`        | 🔴 Nuclear   |
 
 ---
 
@@ -27,6 +27,7 @@ This guide explains how to rollback changes when a future Claude context window 
 **Solution Options**:
 
 #### **Option A: Safe Rollback (Recommended)**
+
 ```bash
 # Undo last commit but keep changes for review
 git reset --soft HEAD~1
@@ -44,6 +45,7 @@ git checkout -- unwanted-file.tsx
 ```
 
 #### **Option B: Nuclear Option (If you're sure)**
+
 ```bash
 # ⚠️ WARNING: This permanently deletes all changes!
 git reset --hard HEAD~1
@@ -54,6 +56,7 @@ git reset --hard HEAD~1
 **Problem**: Claude changed multiple files but only some are problematic.
 
 **Solution**:
+
 ```bash
 # See what files changed recently
 git diff --name-only HEAD~3 HEAD
@@ -74,6 +77,7 @@ git commit -m "rollback: restore working versions of page and camera"
 **Solution Options**:
 
 #### **Option A: Vercel Dashboard (Easiest)**
+
 1. Go to https://vercel.com/dashboard
 2. Select your SplashEasy V2 project
 3. Click "Deployments" tab
@@ -81,6 +85,7 @@ git commit -m "rollback: restore working versions of page and camera"
 5. Click "..." → "Promote to Production"
 
 #### **Option B: Vercel CLI**
+
 ```bash
 # Rollback to previous deployment
 npx vercel rollback --token Rc510TZysBL2kGq2Ke2jD7Wl
@@ -90,6 +95,7 @@ npx vercel rollback [deployment-url] --token Rc510TZysBL2kGq2Ke2jD7Wl
 ```
 
 #### **Option C: Git + Auto-Deploy**
+
 ```bash
 # Rollback code and let CI/CD redeploy
 git reset --hard HEAD~1
@@ -102,6 +108,7 @@ git push --force-with-lease origin main
 **Problem**: Multiple commits from Claude that you want to completely undo.
 
 **Solution**:
+
 ```bash
 # Find commits from yesterday
 git log --since="yesterday" --oneline
@@ -121,6 +128,7 @@ git push --force-with-lease origin main
 **Problem**: Everything is broken and you want to start from the last known good state.
 
 **Solution**:
+
 ```bash
 # Nuclear option - restore from GitHub (destroys ALL local changes)
 git fetch origin
@@ -143,8 +151,9 @@ We've created an interactive script to make rollbacks easier:
 ```
 
 **Script Options**:
+
 1. 🔙 Soft rollback (safe)
-2. 🔥 Hard rollback (destructive) 
+2. 🔥 Hard rollback (destructive)
 3. 📝 Revert commit (creates undo commit)
 4. 📁 Rollback specific file
 5. 🚀 Rollback Vercel deployment
@@ -158,6 +167,7 @@ We've created an interactive script to make rollbacks easier:
 Before rolling back, understand what changed:
 
 ### **See Recent Changes**
+
 ```bash
 # Show last 10 commits
 git log --oneline -10
@@ -173,6 +183,7 @@ git log --follow -p -- app/page.tsx
 ```
 
 ### **Compare Versions**
+
 ```bash
 # Compare current version with 3 commits ago
 git diff HEAD~3 HEAD
@@ -182,6 +193,7 @@ git diff HEAD~1 HEAD app/api/analyze/route.ts
 ```
 
 ### **Find When Something Broke**
+
 ```bash
 # Use git bisect to find the breaking commit
 git bisect start
@@ -197,6 +209,7 @@ git bisect good HEAD~10          # 10 commits ago was working
 ## 📋 Step-by-Step Rollback Procedures
 
 ### **Procedure 1: Safe File Rollback**
+
 ```bash
 # 1. Identify the problem file
 git status
@@ -221,6 +234,7 @@ git push origin main
 ```
 
 ### **Procedure 2: Rollback Multiple Commits**
+
 ```bash
 # 1. Review what will be lost
 git log --oneline -5
@@ -244,6 +258,7 @@ git push --force-with-lease origin main
 ```
 
 ### **Procedure 3: Emergency Production Fix**
+
 ```bash
 # 1. Identify last working deployment
 # Check Vercel dashboard or git log
@@ -264,6 +279,7 @@ curl https://your-app-url.vercel.app/api/analyze
 ## 🚨 Safety Guidelines
 
 ### **Before Any Rollback**
+
 - ✅ Commit any work you want to keep: `git add . && git commit -m "save work in progress"`
 - ✅ Create backup branch: `git branch backup-$(date +%Y%m%d-%H%M%S)`
 - ✅ Understand what you're rolling back: `git diff HEAD~1 HEAD`
@@ -271,22 +287,26 @@ curl https://your-app-url.vercel.app/api/analyze
 ### **Rollback Safety Levels**
 
 #### **🟢 SAFE Operations**
+
 - `git reset --soft HEAD~1` - Keeps all changes
 - `git checkout HEAD~1 -- file.tsx` - Only affects one file
 - `git revert HEAD` - Creates new commit, doesn't destroy history
 - Vercel dashboard rollback - Easy to re-deploy
 
-#### **🟡 MEDIUM Risk Operations**  
+#### **🟡 MEDIUM Risk Operations**
+
 - `git push --force-with-lease` - Can overwrite GitHub
 - Vercel CLI rollback - Need to redeploy to fix
 - Database rollbacks - Can lose data
 
 #### **🔴 DANGEROUS Operations**
+
 - `git reset --hard HEAD~1` - **PERMANENTLY DELETES** uncommitted changes
 - `git push --force` - Can overwrite other people's work
 - `git reset --hard origin/main` - **DESTROYS ALL** local work
 
 ### **Recovery from Mistakes**
+
 If you accidentally ran a dangerous command:
 
 ```bash
@@ -307,6 +327,7 @@ git reset --hard origin/main
 ## 📚 Common Git Commands Reference
 
 ### **Viewing History**
+
 ```bash
 git log --oneline -10        # Last 10 commits, compact
 git log --graph --all        # Visual branch history
@@ -315,6 +336,7 @@ git log --follow file.tsx    # History of specific file
 ```
 
 ### **Comparing Changes**
+
 ```bash
 git diff HEAD~1 HEAD         # Compare last commit with current
 git diff --name-only HEAD~1  # Just show changed file names
@@ -323,6 +345,7 @@ git show abc1234            # Show specific commit details
 ```
 
 ### **Undoing Changes**
+
 ```bash
 git reset --soft HEAD~1      # Undo commit, keep changes staged
 git reset --mixed HEAD~1     # Undo commit, unstage changes
@@ -332,6 +355,7 @@ git checkout -- file.tsx    # Discard changes to file
 ```
 
 ### **Branch Operations**
+
 ```bash
 git branch backup-name       # Create backup branch
 git checkout -b new-branch   # Create and switch to new branch
@@ -346,6 +370,7 @@ git checkout main           # Switch to main branch
 ### **Rolling Back Core Components**
 
 #### **Camera Component Issues**
+
 ```bash
 # Rollback camera component to working version
 git checkout HEAD~1 -- components/features/camera/CameraCapture.tsx
@@ -353,7 +378,8 @@ git add components/features/camera/CameraCapture.tsx
 git commit -m "rollback: restore working camera component"
 ```
 
-#### **API Route Problems** 
+#### **API Route Problems**
+
 ```bash
 # Rollback API route
 git checkout HEAD~1 -- app/api/analyze/route.ts
@@ -363,16 +389,18 @@ git commit -m "rollback: restore working API route"
 ```
 
 #### **Homepage Issues**
+
 ```bash
 # Rollback homepage
 git checkout HEAD~1 -- app/page.tsx
-git add app/page.tsx  
+git add app/page.tsx
 git commit -m "rollback: restore working homepage"
 ```
 
 ### **Environment & Configuration Rollbacks**
 
 #### **Package Dependencies**
+
 ```bash
 # Rollback package.json and reinstall
 git checkout HEAD~1 -- package.json package-lock.json
@@ -380,6 +408,7 @@ npm ci  # Clean install from lock file
 ```
 
 #### **Configuration Files**
+
 ```bash
 # Rollback config files
 git checkout HEAD~1 -- next.config.js tailwind.config.js tsconfig.json
@@ -387,6 +416,7 @@ npm run build  # Test configuration
 ```
 
 #### **Vercel Configuration**
+
 ```bash
 # Rollback Vercel config
 git checkout HEAD~1 -- vercel.json
@@ -402,6 +432,7 @@ npx vercel --prod --token Rc510TZysBL2kGq2Ke2jD7Wl  # Redeploy
 ### **Nuclear Recovery Options**
 
 #### **Option 1: Fresh Clone**
+
 ```bash
 # Clone fresh copy from GitHub
 cd ..
@@ -416,6 +447,7 @@ mv fresh-copy SplashEasy-V2
 ```
 
 #### **Option 2: Reset Everything**
+
 ```bash
 # This destroys ALL local changes
 git fetch origin
@@ -425,6 +457,7 @@ npm ci  # Clean install
 ```
 
 #### **Option 3: Selective Recovery**
+
 ```bash
 # Save current work
 git add .
@@ -442,18 +475,21 @@ git cherry-pick [commit-with-good-changes]
 ## 📋 Rollback Checklist
 
 ### **Before Rolling Back**
+
 - [ ] Identify exactly what broke and when
 - [ ] Create backup: `git branch backup-$(date +%Y%m%d-%H%M%S)`
 - [ ] Save any work in progress: `git add . && git commit -m "wip"`
 - [ ] Review what will be lost: `git diff HEAD~1 HEAD`
 
 ### **During Rollback**
+
 - [ ] Use safest option first (`--soft` over `--hard`)
 - [ ] Test the rollback: `npm run build && npm run lint`
 - [ ] Verify functionality: `npm run dev`
 - [ ] Check API endpoints: `curl http://localhost:3000/api/analyze`
 
 ### **After Rollback**
+
 - [ ] Commit rollback: `git add . && git commit -m "rollback: description"`
 - [ ] Push if needed: `git push origin main`
 - [ ] Verify production: Check live URL

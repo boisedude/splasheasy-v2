@@ -30,9 +30,12 @@ interface HistoricalContext {
 }
 
 export class HistoricalAnalysis {
-  
   // Get historical readings from database
-  static async getHistoricalReadings(userId?: string, unitId?: string, limit: number = 10): Promise<HistoricalReading[]> {
+  static async getHistoricalReadings(
+    userId?: string,
+    unitId?: string,
+    limit: number = 10
+  ): Promise<HistoricalReading[]> {
     try {
       if (!userId || !unitId) {
         // Return mock data if no user context (public access)
@@ -61,7 +64,7 @@ export class HistoricalAnalysis {
         total_hardness: test.total_hardness,
         confidence_score: test.confidence_score || 0.9,
         weather_conditions: undefined, // Could be added later
-        temperature: undefined
+        temperature: undefined,
       }))
     } catch (error) {
       console.error('Database connection error:', error)
@@ -82,21 +85,19 @@ export class HistoricalAnalysis {
         return false
       }
 
-      const { error } = await supabaseAdmin
-        .from('water_tests')
-        .insert({
-          user_id: userId,
-          unit_id: unitId,
-          test_method: 'ai_vision',
-          ph: reading.ph,
-          free_chlorine: reading.free_chlorine,
-          total_alkalinity: reading.total_alkalinity,
-          cyanuric_acid: reading.cyanuric_acid,
-          total_hardness: reading.total_hardness,
-          confidence_score: reading.confidence_score,
-          image_url: imageUrl,
-          created_at: reading.timestamp
-        })
+      const { error } = await supabaseAdmin.from('water_tests').insert({
+        user_id: userId,
+        unit_id: unitId,
+        test_method: 'ai_vision',
+        ph: reading.ph,
+        free_chlorine: reading.free_chlorine,
+        total_alkalinity: reading.total_alkalinity,
+        cyanuric_acid: reading.cyanuric_acid,
+        total_hardness: reading.total_hardness,
+        confidence_score: reading.confidence_score,
+        image_url: imageUrl,
+        created_at: reading.timestamp,
+      })
 
       if (error) {
         console.error('Failed to save test result:', error)
@@ -110,18 +111,21 @@ export class HistoricalAnalysis {
     }
   }
 
-  static analyzeTrends(readings: HistoricalReading[], current: HistoricalReading): HistoricalContext {
+  static analyzeTrends(
+    readings: HistoricalReading[],
+    current: HistoricalReading
+  ): HistoricalContext {
     if (readings.length === 0) {
       return {
         trends: [],
         overall_pool_health: 'good',
         maintenance_insights: ['This is your first test. Establish a baseline by testing weekly.'],
-        next_test_recommendation: 'Test again in 3-7 days to establish trends.'
+        next_test_recommendation: 'Test again in 3-7 days to establish trends.',
       }
     }
 
-    const sortedReadings = readings.sort((a, b) => 
-      new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
+    const sortedReadings = readings.sort(
+      (a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
     )
 
     const trends: TrendAnalysis[] = [
@@ -140,7 +144,7 @@ export class HistoricalAnalysis {
       trends,
       overall_pool_health,
       maintenance_insights,
-      next_test_recommendation
+      next_test_recommendation,
     }
   }
 
@@ -151,7 +155,7 @@ export class HistoricalAnalysis {
     current: HistoricalReading
   ): TrendAnalysis {
     const currentValue = current[key] as number | null
-    
+
     if (currentValue === null) {
       return {
         parameter: name,
@@ -160,7 +164,7 @@ export class HistoricalAnalysis {
         trend_direction: 'insufficient_data',
         trend_strength: 'weak',
         days_since_last_test: 0,
-        recommendation: `${name} could not be read from current test strip.`
+        recommendation: `${name} could not be read from current test strip.`,
       }
     }
 
@@ -176,12 +180,15 @@ export class HistoricalAnalysis {
         trend_direction: 'insufficient_data',
         trend_strength: 'weak',
         days_since_last_test: 0,
-        recommendation: `Establish baseline for ${name} by testing regularly.`
+        recommendation: `Establish baseline for ${name} by testing regularly.`,
       }
     }
 
-    const daysSinceLastTest = previousReading 
-      ? Math.floor((new Date(current.timestamp).getTime() - new Date(previousReading.timestamp).getTime()) / (1000 * 60 * 60 * 24))
+    const daysSinceLastTest = previousReading
+      ? Math.floor(
+          (new Date(current.timestamp).getTime() - new Date(previousReading.timestamp).getTime()) /
+            (1000 * 60 * 60 * 24)
+        )
       : 0
 
     // Calculate trend
@@ -190,19 +197,24 @@ export class HistoricalAnalysis {
 
     let trend_direction: TrendAnalysis['trend_direction'] = 'stable'
     let trend_strength: TrendAnalysis['trend_strength'] = 'weak'
-    
+
     const threshold = this.getTrendThreshold(key as string)
-    
+
     if (Math.abs(difference) > threshold) {
       trend_direction = difference > 0 ? 'increasing' : 'decreasing'
-      
+
       if (percentChange > 20) trend_strength = 'strong'
       else if (percentChange > 10) trend_strength = 'moderate'
       else trend_strength = 'weak'
     }
 
     const recommendation = this.generateParameterRecommendation(
-      name, key as string, currentValue, previousValue, trend_direction, daysSinceLastTest
+      name,
+      key as string,
+      currentValue,
+      previousValue,
+      trend_direction,
+      daysSinceLastTest
     )
 
     return {
@@ -212,7 +224,7 @@ export class HistoricalAnalysis {
       trend_direction,
       trend_strength,
       days_since_last_test: daysSinceLastTest,
-      recommendation
+      recommendation,
     }
   }
 
@@ -222,7 +234,7 @@ export class HistoricalAnalysis {
       free_chlorine: 0.5,
       total_alkalinity: 10,
       cyanuric_acid: 5,
-      total_hardness: 20
+      total_hardness: 20,
     }
     return thresholds[parameter] || 1
   }
@@ -236,7 +248,7 @@ export class HistoricalAnalysis {
     days: number
   ): string {
     const direction = trend === 'increasing' ? 'rising' : 'falling'
-    
+
     if (trend === 'stable') {
       return `${name} is stable at ${current}${this.getUnit(key)}. Good consistency!`
     }
@@ -254,7 +266,7 @@ export class HistoricalAnalysis {
           return `pH trending down (${previous}→${current}). Add pH increaser to prevent acidity.`
         }
         break
-        
+
       case 'free_chlorine':
         if (trend === 'decreasing' && current < 1.0) {
           return `Chlorine dropping fast (${previous}→${current} ppm). Add chlorine immediately.`
@@ -271,13 +283,16 @@ export class HistoricalAnalysis {
     return parameter === 'ph' ? '' : ' ppm'
   }
 
-  private static assessOverallHealth(trends: TrendAnalysis[]): HistoricalContext['overall_pool_health'] {
+  private static assessOverallHealth(
+    trends: TrendAnalysis[]
+  ): HistoricalContext['overall_pool_health'] {
     if (trends.length === 0) return 'good'
-    
-    const problematicTrends = trends.filter(t => 
-      t.recommendation.toLowerCase().includes('immediately') ||
-      t.recommendation.toLowerCase().includes('add') ||
-      t.trend_strength === 'strong'
+
+    const problematicTrends = trends.filter(
+      t =>
+        t.recommendation.toLowerCase().includes('immediately') ||
+        t.recommendation.toLowerCase().includes('add') ||
+        t.trend_strength === 'strong'
     )
 
     if (problematicTrends.length >= 3) return 'poor'
@@ -294,30 +309,40 @@ export class HistoricalAnalysis {
 
     // Check testing frequency
     if (_readings.length > 1) {
-      const avgDaysBetweenTests = _readings.slice(0, 3).reduce((sum, reading, index) => {
-        if (index === 0) return sum
-        const prevReading = _readings[index - 1]
-        const days = Math.floor((new Date(prevReading.timestamp).getTime() - new Date(reading.timestamp).getTime()) / (1000 * 60 * 60 * 24))
-        return sum + days
-      }, 0) / Math.max(1, _readings.length - 1)
+      const avgDaysBetweenTests =
+        _readings.slice(0, 3).reduce((sum, reading, index) => {
+          if (index === 0) return sum
+          const prevReading = _readings[index - 1]
+          const days = Math.floor(
+            (new Date(prevReading.timestamp).getTime() - new Date(reading.timestamp).getTime()) /
+              (1000 * 60 * 60 * 24)
+          )
+          return sum + days
+        }, 0) / Math.max(1, _readings.length - 1)
 
       if (avgDaysBetweenTests > 10) {
-        insights.push('Consider testing more frequently (every 3-7 days) for better trend tracking.')
+        insights.push(
+          'Consider testing more frequently (every 3-7 days) for better trend tracking.'
+        )
       }
     }
 
     // Check for concerning patterns
     const strongTrends = trends.filter(t => t.trend_strength === 'strong')
     if (strongTrends.length > 0) {
-      insights.push(`Strong trends detected in: ${strongTrends.map(t => t.parameter).join(', ')}. May indicate systematic issue.`)
+      insights.push(
+        `Strong trends detected in: ${strongTrends.map(t => t.parameter).join(', ')}. May indicate systematic issue.`
+      )
     }
 
     // Seasonal recommendations
     const currentMonth = new Date().getMonth()
-    if (currentMonth >= 5 && currentMonth <= 8) { // Summer months
+    if (currentMonth >= 5 && currentMonth <= 8) {
+      // Summer months
       insights.push('Summer requires more frequent testing due to increased bather load and heat.')
-    } else if (currentMonth >= 11 || currentMonth <= 2) { // Winter months
-      insights.push('Winter maintenance allows less frequent testing, but don\'t skip completely.')
+    } else if (currentMonth >= 11 || currentMonth <= 2) {
+      // Winter months
+      insights.push("Winter maintenance allows less frequent testing, but don't skip completely.")
     }
 
     if (insights.length === 0) {
@@ -327,12 +352,9 @@ export class HistoricalAnalysis {
     return insights
   }
 
-  private static generateNextTestRecommendation(
-    trends: TrendAnalysis[]
-  ): string {
-    const urgentTrends = trends.filter(t => 
-      t.recommendation.toLowerCase().includes('immediately') ||
-      t.trend_strength === 'strong'
+  private static generateNextTestRecommendation(trends: TrendAnalysis[]): string {
+    const urgentTrends = trends.filter(
+      t => t.recommendation.toLowerCase().includes('immediately') || t.trend_strength === 'strong'
     )
 
     if (urgentTrends.length > 0) {
@@ -358,7 +380,7 @@ export class HistoricalAnalysis {
         total_alkalinity: 95,
         cyanuric_acid: 45,
         total_hardness: 220,
-        confidence_score: 0.92
+        confidence_score: 0.92,
       },
       {
         timestamp: new Date(now.getTime() - 14 * 24 * 60 * 60 * 1000).toISOString(), // 14 days ago
@@ -367,7 +389,7 @@ export class HistoricalAnalysis {
         total_alkalinity: 105,
         cyanuric_acid: 42,
         total_hardness: 215,
-        confidence_score: 0.88
+        confidence_score: 0.88,
       },
       {
         timestamp: new Date(now.getTime() - 21 * 24 * 60 * 60 * 1000).toISOString(), // 21 days ago
@@ -376,8 +398,8 @@ export class HistoricalAnalysis {
         total_alkalinity: 110,
         cyanuric_acid: 40,
         total_hardness: 200,
-        confidence_score: 0.85
-      }
+        confidence_score: 0.85,
+      },
     ]
   }
 }

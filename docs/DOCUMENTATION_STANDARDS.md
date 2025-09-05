@@ -7,22 +7,25 @@
 **ALL statements claiming completion, readiness, or finished status MUST be verified before documentation:**
 
 ❌ **PROHIBITED without verification:**
+
 - "100% complete"
-- "Ready for production" 
+- "Ready for production"
 - "Fully functional"
 - "All features implemented"
 - "Deployment ready"
 - Any percentage > 50% without evidence
 
 ✅ **REQUIRED for completion claims:**
+
 1. **Code review verification** - Actual codebase inspection
-2. **Build/test verification** - Successful compilation and testing  
+2. **Build/test verification** - Successful compilation and testing
 3. **Functional verification** - Working demo of claimed features
 4. **Peer review** - Second person verification of claims
 
 ### **Documentation Approval Process**
 
 #### **Level 1: Status Updates (Low Risk)**
+
 - Progress updates
 - Task tracking
 - Technical notes
@@ -30,24 +33,28 @@
 
 **Approval**: Self-approved ✅
 
-#### **Level 2: Completion Claims (High Risk)**  
+#### **Level 2: Completion Claims (High Risk)**
+
 - Feature completion statements
 - Production readiness claims
 - Deployment status
 - User-facing functionality claims
 
-**Approval Required**: 
+**Approval Required**:
+
 1. **Technical verification** - Code inspection
 2. **Functional testing** - Live demo
 3. **Documentation review** - Accuracy check
 
 #### **Level 3: Marketing/External Claims (Critical Risk)**
+
 - Public-facing status
-- Client deliverables  
+- Client deliverables
 - Investor updates
 - Release announcements
 
 **Approval Required**:
+
 1. All Level 2 requirements
 2. **Stakeholder review**
 3. **Legal/compliance check**
@@ -60,7 +67,7 @@
 ### **Status Accuracy Requirements**
 
 1. **Be Precise**: Use specific, measurable terms
-   - ✅ "API endpoint created, returns 200" 
+   - ✅ "API endpoint created, returns 200"
    - ❌ "API is working perfectly"
 
 2. **Evidence-Based**: Include verification method
@@ -98,14 +105,17 @@ When inaccurate completion claims are discovered:
 ### **Documentation Integrity Violations**
 
 **Minor Violations** (unintentional inaccuracy):
+
 - Documentation correction required
 - Process training recommended
 
 **Major Violations** (misleading completion claims):
+
 - All future completion claims require peer review
 - Process improvement plan required
 
 **Critical Violations** (external misrepresentation):
+
 - All documentation requires approval
 - Investigation of development processes
 
@@ -114,7 +124,7 @@ When inaccurate completion claims are discovered:
 Before marking anything as "complete":
 
 - [ ] **Code exists and compiles**
-- [ ] **Feature functions as documented**  
+- [ ] **Feature functions as documented**
 - [ ] **Error cases handled**
 - [ ] **Tests pass (if tests exist)**
 - [ ] **Documentation matches reality**
@@ -133,4 +143,4 @@ Before marking anything as "complete":
 
 ---
 
-*"Trust is built through accurate documentation. Every false completion claim erodes confidence in our development process."*
+_"Trust is built through accurate documentation. Every false completion claim erodes confidence in our development process."_

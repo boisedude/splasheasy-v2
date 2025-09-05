@@ -1,4 +1,5 @@
 # System Architecture Design
+
 **SplashEasy V2 - AI-Powered Water Testing Platform**
 
 ---
@@ -13,22 +14,22 @@ SplashEasy V2 follows a modern, cloud-native architecture with dual personas: a 
 graph TB
     Consumer[Consumer Users] --> PWA[Consumer PWA App]
     Partner[Pool Companies] --> Portal[Partner Portal]
-    
+
     PWA --> CDN[Vercel Edge Network]
     Portal --> CDN
     CDN --> App[Next.js App Router]
-    
+
     App --> Auth[Supabase Auth]
     App --> Edge[Vercel Edge Functions]
     App --> DB[(Supabase PostgreSQL)]
-    
+
     Edge --> AI[Vercel AI SDK]
     AI --> GPT4[GPT-4 Vision API]
     AI --> Structured[Structured Outputs]
-    
+
     App --> Storage[Supabase Storage]
     Storage --> Temp[Temporary Image Storage]
-    
+
     PWA --> Cache[Service Worker Cache]
     PWA --> IndexDB[(IndexedDB)]
 ```
@@ -37,7 +38,7 @@ graph TB
 
 1. **Dual Persona Architecture**: Completely separate consumer and partner experiences
 2. **AI-First Interaction**: Computer vision is the primary consumer interaction paradigm
-3. **Edge-Native**: Processing happens as close to users as possible  
+3. **Edge-Native**: Processing happens as close to users as possible
 4. **Mobile-Optimized**: Every decision prioritizes mobile performance for consumers
 5. **Progressive Enhancement**: Works great everywhere, exceptional on modern devices
 6. **Privacy-by-Design**: Minimal data collection, secure processing, user ownership
@@ -60,7 +61,7 @@ Authentication: Supabase Auth
 File Storage: Supabase Storage
 AI Processing: Vercel AI SDK + GPT-4 Vision
 
-// UI/UX Stack  
+// UI/UX Stack
 Component Library: shadcn/ui + Radix UI primitives
 CSS Framework: Tailwind CSS 3.4+
 Icons: Lucide React
@@ -122,16 +123,12 @@ interface AppState {
 // Server State: Vercel AI SDK built-in
 const { data, isLoading, error } = useQuery({
   queryKey: ['waterTest', testId],
-  queryFn: () => fetchWaterTest(testId)
+  queryFn: () => fetchWaterTest(testId),
 })
 
 // Local State: Component-level useState/useReducer
 // Camera State: Custom hooks
-const { 
-  isReady, 
-  captureImage, 
-  stream 
-} = useCamera()
+const { isReady, captureImage, stream } = useCamera()
 ```
 
 ### 2.4 Routing Structure
@@ -174,8 +171,8 @@ app/
 
 // POST /api/analyze - Computer Vision Analysis
 interface AnalyzeRequest {
-  image: string        // Base64 encoded image
-  unitId: string      // Associated unit
+  image: string // Base64 encoded image
+  unitId: string // Associated unit
   testMethod: 'computer_vision' | 'manual'
 }
 
@@ -191,7 +188,7 @@ interface AnalyzeResponse {
   error?: string
 }
 
-// GET /api/tests - Retrieve Test History  
+// GET /api/tests - Retrieve Test History
 interface TestsResponse {
   tests: WaterTest[]
   pagination: {
@@ -205,7 +202,7 @@ interface TestsResponse {
 interface UnitRequest {
   name: string
   type: 'pool' | 'spa' | 'hot_tub'
-  volume: number      // gallons
+  volume: number // gallons
   sanitizerType: 'chlorine' | 'bromine' | 'salt'
 }
 ```
@@ -216,38 +213,38 @@ interface UnitRequest {
 // Vercel Edge Functions for AI Processing
 // Located at: /api/analyze/route.ts
 
-export const runtime = 'edge'  // Vercel Edge Runtime
-export const maxDuration = 30   // Seconds (AI processing time)
+export const runtime = 'edge' // Vercel Edge Runtime
+export const maxDuration = 30 // Seconds (AI processing time)
 
 export async function POST(request: Request) {
   // 1. Input validation & authentication
   const { image, unitId } = await request.json()
   const userId = await validateAuth(request)
-  
+
   // 2. Image preprocessing
   const processedImage = await optimizeImage(image)
-  
+
   // 3. AI analysis via Vercel AI SDK
   const analysis = await analyzeWaterStrip({
     image: processedImage,
     model: 'gpt-4-vision-preview',
-    structuredOutput: WaterTestSchema
+    structuredOutput: WaterTestSchema,
   })
-  
+
   // 4. Business logic application
   const recommendations = calculateDosing(analysis, unitId)
-  
+
   // 5. Data persistence
   await saveTestResult(userId, unitId, analysis, recommendations)
-  
+
   // 6. Response with confidence scoring
   return Response.json({
     success: true,
     data: {
       ...analysis,
       recommendations,
-      confidenceScore: analysis.confidence
-    }
+      confidenceScore: analysis.confidence,
+    },
   })
 }
 ```
@@ -288,7 +285,7 @@ CREATE TABLE water_tests (
   unit_id UUID NOT NULL REFERENCES units(id) ON DELETE CASCADE,
   user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
   test_method TEXT NOT NULL CHECK (test_method IN ('computer_vision', 'manual')),
-  
+
   -- Chemical readings
   ph DECIMAL(3,1) CHECK (ph >= 0 AND ph <= 14),
   free_chlorine DECIMAL(4,2) CHECK (free_chlorine >= 0),
@@ -296,19 +293,19 @@ CREATE TABLE water_tests (
   cyanuric_acid INTEGER CHECK (cyanuric_acid >= 0),
   total_hardness INTEGER CHECK (total_hardness >= 0),
   temperature INTEGER CHECK (temperature >= 32 AND temperature <= 120),
-  
+
   -- AI-specific fields
   confidence_score DECIMAL(3,2) CHECK (confidence_score >= 0 AND confidence_score <= 1),
   image_url TEXT,                   -- Temporary storage URL (24h expiry)
-  
+
   -- Metadata
   notes TEXT,
   created_at TIMESTAMP DEFAULT NOW(),
-  
+
   -- Indexes for performance
   CONSTRAINT valid_readings CHECK (
-    ph IS NOT NULL OR 
-    free_chlorine IS NOT NULL OR 
+    ph IS NOT NULL OR
+    free_chlorine IS NOT NULL OR
     total_alkalinity IS NOT NULL
   )
 );
@@ -345,54 +342,57 @@ class WaterStripAnalyzer {
     if (!validatedImage.isValid) {
       throw new Error(validatedImage.reason)
     }
-    
+
     // Stage 2: Strip detection & orientation
     const stripDetection = await this.detectStrip(validatedImage.image)
     if (!stripDetection.found) {
       throw new Error('No test strip detected in image')
     }
-    
+
     // Stage 3: Color analysis via GPT-4 Vision
     const colorAnalysis = await this.analyzeColors({
       image: stripDetection.croppedImage,
-      stripType: 'standard_5_parameter',  // pH, FC, TA, CYA, TH
-      lightingConditions: stripDetection.lighting
+      stripType: 'standard_5_parameter', // pH, FC, TA, CYA, TH
+      lightingConditions: stripDetection.lighting,
     })
-    
+
     // Stage 4: Confidence scoring
     const confidence = this.calculateConfidence(colorAnalysis)
-    
+
     // Stage 5: Result validation & error detection
     const validatedResults = this.validateResults(colorAnalysis)
-    
+
     return {
       ...validatedResults,
       confidenceScore: confidence,
-      processingTime: Date.now() - startTime
+      processingTime: Date.now() - startTime,
     }
   }
-  
+
   private async analyzeColors(params: ColorAnalysisParams): Promise<ColorAnalysis> {
     const { generateObject } = await import('ai')
-    
+
     return await generateObject({
       model: 'gpt-4-vision-preview',
-      messages: [{
-        role: 'system',
-        content: `You are an expert water chemistry analyzer. Analyze the test strip colors and provide accurate chemical readings. Consider lighting conditions: ${params.lightingConditions}.`
-      }, {
-        role: 'user', 
-        content: [
-          {
-            type: 'text',
-            text: `Analyze this ${params.stripType} water test strip. Identify each color pad and provide precise chemical readings.`
-          },
-          {
-            type: 'image',
-            image: params.image
-          }
-        ]
-      }],
+      messages: [
+        {
+          role: 'system',
+          content: `You are an expert water chemistry analyzer. Analyze the test strip colors and provide accurate chemical readings. Consider lighting conditions: ${params.lightingConditions}.`,
+        },
+        {
+          role: 'user',
+          content: [
+            {
+              type: 'text',
+              text: `Analyze this ${params.stripType} water test strip. Identify each color pad and provide precise chemical readings.`,
+            },
+            {
+              type: 'image',
+              image: params.image,
+            },
+          ],
+        },
+      ],
       schema: z.object({
         ph: z.number().min(0).max(14),
         freeChlorine: z.number().min(0).max(20),
@@ -403,10 +403,10 @@ class WaterStripAnalyzer {
           ph: z.number().min(0).max(1),
           freeChlorine: z.number().min(0).max(1),
           totalAlkalinity: z.number().min(0).max(1),
-          overall: z.number().min(0).max(1)
+          overall: z.number().min(0).max(1),
         }),
-        detectedIssues: z.array(z.string()).optional()
-      })
+        detectedIssues: z.array(z.string()).optional(),
+      }),
     })
   }
 }
@@ -423,84 +423,98 @@ class DosingCalculator {
     unitVolume: number,
     sanitizerType: SanitizerType
   ): Recommendation[] {
-    
     const recommendations: Recommendation[] = []
-    
+
     // Priority 1: pH adjustment (affects all other chemicals)
     if (this.isOutOfRange(currentReadings.ph, targetRanges.ph)) {
-      recommendations.push(...this.calculatePHAdjustment(
-        currentReadings.ph,
-        targetRanges.ph,
-        unitVolume,
-        currentReadings.totalAlkalinity
-      ))
+      recommendations.push(
+        ...this.calculatePHAdjustment(
+          currentReadings.ph,
+          targetRanges.ph,
+          unitVolume,
+          currentReadings.totalAlkalinity
+        )
+      )
     }
-    
+
     // Priority 2: Total Alkalinity (pH buffer)
     if (this.isOutOfRange(currentReadings.totalAlkalinity, targetRanges.totalAlkalinity)) {
-      recommendations.push(...this.calculateAlkalinityAdjustment(
-        currentReadings.totalAlkalinity,
-        targetRanges.totalAlkalinity,
-        unitVolume
-      ))
+      recommendations.push(
+        ...this.calculateAlkalinityAdjustment(
+          currentReadings.totalAlkalinity,
+          targetRanges.totalAlkalinity,
+          unitVolume
+        )
+      )
     }
-    
+
     // Priority 3: Sanitizer levels
     if (this.isOutOfRange(currentReadings.freeChlorine, targetRanges.freeChlorine)) {
-      recommendations.push(...this.calculateSanitizerAdjustment(
-        currentReadings.freeChlorine,
-        targetRanges.freeChlorine,
-        unitVolume,
-        sanitizerType,
-        currentReadings.cyanuricAcid
-      ))
+      recommendations.push(
+        ...this.calculateSanitizerAdjustment(
+          currentReadings.freeChlorine,
+          targetRanges.freeChlorine,
+          unitVolume,
+          sanitizerType,
+          currentReadings.cyanuricAcid
+        )
+      )
     }
-    
+
     // Priority 4: Stabilizer (CYA) for outdoor pools
-    if (sanitizerType === 'chlorine' && this.isOutOfRange(currentReadings.cyanuricAcid, targetRanges.cyanuricAcid)) {
-      recommendations.push(...this.calculateStabilizerAdjustment(
-        currentReadings.cyanuricAcid,
-        targetRanges.cyanuricAcid,
-        unitVolume
-      ))
+    if (
+      sanitizerType === 'chlorine' &&
+      this.isOutOfRange(currentReadings.cyanuricAcid, targetRanges.cyanuricAcid)
+    ) {
+      recommendations.push(
+        ...this.calculateStabilizerAdjustment(
+          currentReadings.cyanuricAcid,
+          targetRanges.cyanuricAcid,
+          unitVolume
+        )
+      )
     }
-    
+
     return recommendations.sort((a, b) => a.priority - b.priority)
   }
-  
+
   private calculatePHAdjustment(
     currentPH: number,
     targetRange: Range,
     volume: number,
     alkalinity: number
   ): Recommendation[] {
-    const target = (targetRange.min + targetRange.max) / 2  // 7.4 for pH
+    const target = (targetRange.min + targetRange.max) / 2 // 7.4 for pH
     const difference = target - currentPH
-    
-    if (Math.abs(difference) < 0.1) return []  // Within acceptable range
-    
+
+    if (Math.abs(difference) < 0.1) return [] // Within acceptable range
+
     if (difference > 0) {
       // pH too low, add pH increaser (sodium carbonate)
       const ounces = this.calculatePHIncreaser(difference, volume, alkalinity)
-      return [{
-        chemicalType: 'ph_increaser',
-        amount: ounces,
-        unit: 'oz',
-        priority: 1,
-        reason: `pH is ${currentPH}, target is ${target.toFixed(1)}`,
-        safetyNotes: 'Add slowly with pump running. Wait 4 hours before retesting.'
-      }]
+      return [
+        {
+          chemicalType: 'ph_increaser',
+          amount: ounces,
+          unit: 'oz',
+          priority: 1,
+          reason: `pH is ${currentPH}, target is ${target.toFixed(1)}`,
+          safetyNotes: 'Add slowly with pump running. Wait 4 hours before retesting.',
+        },
+      ]
     } else {
       // pH too high, add pH decreaser (sodium bisulfate)
       const ounces = this.calculatePHDecreaser(Math.abs(difference), volume, alkalinity)
-      return [{
-        chemicalType: 'ph_decreaser', 
-        amount: ounces,
-        unit: 'oz',
-        priority: 1,
-        reason: `pH is ${currentPH}, target is ${target.toFixed(1)}`,
-        safetyNotes: 'Add slowly with pump running. Wait 4 hours before retesting.'
-      }]
+      return [
+        {
+          chemicalType: 'ph_decreaser',
+          amount: ounces,
+          unit: 'oz',
+          priority: 1,
+          reason: `pH is ${currentPH}, target is ${target.toFixed(1)}`,
+          safetyNotes: 'Add slowly with pump running. Wait 4 hours before retesting.',
+        },
+      ]
     }
   }
 }
@@ -520,8 +534,8 @@ const isProtectedRoute = createRouteMatcher([
   '/units/(.*)',
   '/profile/(.*)',
   '/api/analyze',
-  '/api/tests', 
-  '/api/units'
+  '/api/tests',
+  '/api/units',
 ])
 
 export default clerkMiddleware((auth, req) => {
@@ -534,14 +548,14 @@ export async function POST(request: Request) {
   if (!userId) {
     return new Response('Unauthorized', { status: 401 })
   }
-  
+
   // Rate limiting for AI endpoints
   const identifier = userId
   const { success } = await ratelimit.limit(identifier)
   if (!success) {
     return new Response('Rate limit exceeded', { status: 429 })
   }
-  
+
   // Process request...
 }
 ```
@@ -557,19 +571,19 @@ class SecureImageProcessor {
     if (!validation.isValid) {
       throw new Error(`Invalid image: ${validation.reason}`)
     }
-    
+
     // 2. Strip EXIF data for privacy
     const cleanImage = await this.removeEXIFData(imageBase64)
-    
+
     // 3. Resize and optimize for AI processing
     const optimizedImage = await this.optimizeForAnalysis(cleanImage)
-    
+
     // 4. Generate temporary signed URL (24h expiry)
     const tempUrl = await this.uploadTemporary(optimizedImage, '24h')
-    
+
     return tempUrl
   }
-  
+
   async cleanupTempImages(): Promise<void> {
     // Automated cleanup of expired temporary images
     // Runs daily via Vercel Cron Jobs
@@ -581,9 +595,9 @@ class SecureImageProcessor {
 // Environment variable validation
 const requiredEnvVars = [
   'CLERK_SECRET_KEY',
-  'POSTGRES_URL', 
+  'POSTGRES_URL',
   'BLOB_READ_WRITE_TOKEN',
-  'OPENAI_API_KEY'
+  'OPENAI_API_KEY',
 ] as const
 
 function validateEnvironment() {
@@ -641,37 +655,37 @@ export const runtime = 'edge'
 export const maxDuration = 30
 
 // Response caching for similar images
-const CACHE_TTL = 60 * 60 * 24  // 24 hours
+const CACHE_TTL = 60 * 60 * 24 // 24 hours
 
 export async function POST(request: Request) {
   const { image, unitId } = await request.json()
-  
+
   // Generate cache key from image hash
   const imageHash = await generateImageHash(image)
   const cacheKey = `analysis:${imageHash}:${unitId}`
-  
+
   // Check cache first
   const cached = await cache.get(cacheKey)
   if (cached) {
     return Response.json(cached, {
       headers: {
         'Cache-Control': 'public, max-age=3600',
-        'X-Cache': 'HIT'
-      }
+        'X-Cache': 'HIT',
+      },
     })
   }
-  
+
   // Process with AI
   const result = await analyzeImage(image, unitId)
-  
+
   // Cache result
   await cache.set(cacheKey, result, CACHE_TTL)
-  
+
   return Response.json(result, {
     headers: {
       'Cache-Control': 'public, max-age=3600',
-      'X-Cache': 'MISS'
-    }
+      'X-Cache': 'MISS',
+    },
   })
 }
 ```
@@ -680,23 +694,23 @@ export async function POST(request: Request) {
 
 ```sql
 -- Performance indexes
-CREATE INDEX CONCURRENTLY idx_water_tests_user_recent 
-ON water_tests(user_id, created_at DESC) 
+CREATE INDEX CONCURRENTLY idx_water_tests_user_recent
+ON water_tests(user_id, created_at DESC)
 WHERE created_at > (NOW() - INTERVAL '30 days');
 
-CREATE INDEX CONCURRENTLY idx_units_user_favorite 
-ON units(user_id, is_favorite) 
+CREATE INDEX CONCURRENTLY idx_units_user_favorite
+ON units(user_id, is_favorite)
 WHERE is_favorite = true;
 
 -- Materialized view for analytics
 CREATE MATERIALIZED VIEW user_test_stats AS
-SELECT 
+SELECT
   user_id,
   COUNT(*) as total_tests,
   AVG(confidence_score) as avg_confidence,
   MAX(created_at) as last_test_date,
   COUNT(CASE WHEN test_method = 'computer_vision' THEN 1 END) as cv_tests
-FROM water_tests 
+FROM water_tests
 WHERE created_at > (NOW() - INTERVAL '90 days')
 GROUP BY user_id;
 
@@ -734,7 +748,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 class PerformanceMonitor {
   trackAIAnalysis(startTime: number, success: boolean, confidence?: number) {
     const duration = Date.now() - startTime
-    
+
     // Track to Vercel Analytics
     analytics.track('ai_analysis_complete', {
       duration,
@@ -742,13 +756,13 @@ class PerformanceMonitor {
       confidence,
       timestamp: Date.now()
     })
-    
+
     // Performance threshold alerts
     if (duration > 10000) {  // 10 seconds
       this.alertSlowAnalysis(duration)
     }
   }
-  
+
   trackUserJourney(event: string, properties?: Record<string, any>) {
     analytics.track(event, {
       ...properties,
@@ -768,7 +782,7 @@ class ErrorBoundary extends React.Component {
   componentDidCatch(error: Error, errorInfo: ErrorInfo) {
     // Log to monitoring service
     console.error('Application Error:', error, errorInfo)
-    
+
     // Track error analytics
     analytics.track('error_boundary_triggered', {
       error: error.message,
@@ -776,7 +790,7 @@ class ErrorBoundary extends React.Component {
       componentStack: errorInfo.componentStack
     })
   }
-  
+
   render() {
     if (this.state.hasError) {
       return <ErrorFallback onRetry={() => this.setState({ hasError: false })} />
@@ -792,7 +806,7 @@ export async function POST(request: Request) {
     return Response.json({ success: true, data })
   } catch (error) {
     console.error('API Error:', error)
-    
+
     // Structured error logging
     const errorLog = {
       timestamp: new Date().toISOString(),
@@ -802,15 +816,15 @@ export async function POST(request: Request) {
       stack: error.stack,
       userId: auth().userId
     }
-    
+
     // Log to monitoring service (Vercel logs automatically)
     console.error('Structured Error:', errorLog)
-    
+
     return Response.json(
-      { 
-        success: false, 
-        error: 'Analysis failed', 
-        code: 'ANALYSIS_ERROR' 
+      {
+        success: false,
+        error: 'Analysis failed',
+        code: 'ANALYSIS_ERROR'
       },
       { status: 500 }
     )

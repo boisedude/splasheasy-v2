@@ -3,6 +3,7 @@
 ## 📊 **Current Status: Phase 1 MVP Complete**
 
 **Phase 1 Achievements**:
+
 - ✅ Functional AI water testing with GPT-4 Vision
 - ✅ WebRTC camera interface with mobile optimization
 - ✅ Professional results display with recommendations
@@ -19,6 +20,7 @@
 Transform the functional MVP into a full production application with user accounts, data persistence, and enhanced user experience.
 
 ### **Phase 2 Success Criteria**
+
 - Users can create accounts and log in
 - Test results are saved and accessible in history
 - Users can manage multiple pools/spas
@@ -30,27 +32,31 @@ Transform the functional MVP into a full production application with user accoun
 ## 📋 **Phase 2 Development Roadmap**
 
 ### **🔐 Epic 1: User Authentication & Accounts**
+
 **Priority**: HIGH (Foundation for all other features)
 
 #### **User Stories**
+
 - As a user, I want to create an account so I can save my test results
 - As a user, I want to log in to access my saved data
 - As a user, I want to continue using the app without an account (guest mode)
 - As a user, I want to convert my guest session to a full account
 
 #### **Technical Tasks**
+
 - [ ] **Auth Components** - Login/Signup forms with Supabase Auth
 - [ ] **Navigation Updates** - Add auth state to navigation
-- [ ] **Protected Routes** - Middleware for authenticated areas  
+- [ ] **Protected Routes** - Middleware for authenticated areas
 - [ ] **User Profile** - Basic profile management
 - [ ] **Session Management** - Handle auth state across app
 - [ ] **Guest-to-User Migration** - Convert guest sessions to accounts
 
 #### **Files to Create/Modify**
+
 ```
 app/auth/
 ├── login/page.tsx                 # Login page
-├── signup/page.tsx               # Signup page  
+├── signup/page.tsx               # Signup page
 ├── callback/page.tsx             # OAuth callback handler
 └── profile/page.tsx              # User profile management
 
@@ -62,22 +68,25 @@ components/auth/
 
 lib/auth/
 ├── auth-client.ts               # Client-side auth utilities
-├── auth-server.ts               # Server-side auth utilities  
+├── auth-server.ts               # Server-side auth utilities
 └── middleware.ts                # Auth middleware
 ```
 
 ---
 
 ### **📊 Epic 2: Test Result Persistence & History**
+
 **Priority**: HIGH (Core user value)
 
-#### **User Stories**  
+#### **User Stories**
+
 - As a user, I want my test results saved so I can track changes over time
 - As a user, I want to see trends in my water chemistry
 - As a user, I want to view detailed history of all my tests
 - As a user, I want to export or share my test data
 
 #### **Technical Tasks**
+
 - [ ] **Save Test Results** - Store results in Supabase after analysis
 - [ ] **Test History Page** - Display user's test history with filters
 - [ ] **Trend Analysis** - Charts showing chemical levels over time
@@ -85,6 +94,7 @@ lib/auth/
 - [ ] **Data Export** - Export history as PDF or CSV
 
 #### **Files to Create/Modify**
+
 ```
 app/dashboard/
 ├── page.tsx                     # Main dashboard
@@ -106,15 +116,18 @@ lib/database/
 ---
 
 ### **🏊‍♀️ Epic 3: Unit Management (Pools & Spas)**
+
 **Priority**: MEDIUM (Enables personalized recommendations)
 
 #### **User Stories**
+
 - As a user, I want to add and manage multiple pools/spas
 - As a user, I want personalized recommendations based on my pool size/type
 - As a user, I want to associate test results with specific pools
 - As a user, I want to set default settings for each unit
 
 #### **Technical Tasks**
+
 - [ ] **Unit CRUD Operations** - Add/edit/delete pools and spas
 - [ ] **Unit Selection** - Choose unit during testing flow
 - [ ] **Unit-Specific Settings** - Volume, type, sanitizer preferences
@@ -122,11 +135,12 @@ lib/database/
 - [ ] **Unit Dashboard** - Per-unit analytics and history
 
 #### **Files to Create/Modify**
+
 ```
 app/units/
 ├── page.tsx                     # Units list page
 ├── add/page.tsx                 # Add new unit form
-├── [id]/edit/page.tsx          # Edit unit form  
+├── [id]/edit/page.tsx          # Edit unit form
 └── [id]/page.tsx               # Unit details and history
 
 components/units/
@@ -142,15 +156,18 @@ lib/database/
 ---
 
 ### **📅 Epic 4: Maintenance Reminder System**
+
 **Priority**: MEDIUM (Adds ongoing value)
 
 #### **User Stories**
+
 - As a user, I want reminders for regular maintenance tasks
 - As a user, I want to customize reminder frequency
 - As a user, I want to mark tasks as complete
 - As a user, I want seasonal maintenance suggestions
 
 #### **Technical Tasks**
+
 - [ ] **Reminder CRUD** - Create/manage maintenance reminders
 - [ ] **Notification System** - Email/browser notifications
 - [ ] **Task Completion** - Mark tasks complete and reschedule
@@ -160,9 +177,11 @@ lib/database/
 ---
 
 ### **📱 Epic 5: Enhanced Mobile & PWA Features**
+
 **Priority**: LOW (Polish and user experience)
 
 #### **User Stories**
+
 - As a user, I want to install the app on my phone
 - As a user, I want offline access to my test history
 - As a user, I want push notifications for reminders
@@ -173,6 +192,7 @@ lib/database/
 ## 🛠️ **Phase 2 Technical Architecture**
 
 ### **Authentication Flow**
+
 ```mermaid
 graph TD
     A[User Visits] --> B{Authenticated?}
@@ -187,15 +207,18 @@ graph TD
 ```
 
 ### **Data Persistence Strategy**
+
 - **Guest Users**: Results stored in localStorage temporarily
 - **Authenticated Users**: All data persisted to Supabase
 - **Migration**: Guest data converted on account creation
 - **Backup**: Regular automated backups of user data
 
 ### **Database Usage**
+
 The existing schema is ready for Phase 2:
+
 - `profiles` table for user accounts
-- `units` table for pools/spas  
+- `units` table for pools/spas
 - `water_tests` table for test results
 - `maintenance_reminders` table for reminders
 
@@ -204,13 +227,15 @@ The existing schema is ready for Phase 2:
 ## 📈 **Development Priorities & Timeline**
 
 ### **Sprint 1 (Week 1-2): Authentication Foundation**
+
 1. Set up Supabase Auth integration
 2. Create login/signup pages
 3. Add auth state management
 4. Implement protected routes
 5. Test authentication flow
 
-### **Sprint 2 (Week 3-4): Test Result Persistence** 
+### **Sprint 2 (Week 3-4): Test Result Persistence**
+
 1. Connect test results to database
 2. Build test history page
 3. Add user dashboard
@@ -218,6 +243,7 @@ The existing schema is ready for Phase 2:
 5. Test data persistence
 
 ### **Sprint 3 (Week 5-6): Unit Management**
+
 1. Create unit management pages
 2. Add unit selection to test flow
 3. Implement personalized dosing calculations
@@ -225,6 +251,7 @@ The existing schema is ready for Phase 2:
 5. Test multi-unit functionality
 
 ### **Sprint 4 (Week 7-8): Maintenance & Polish**
+
 1. Build maintenance reminder system
 2. Add notification functionality
 3. Enhance mobile experience
@@ -236,6 +263,7 @@ The existing schema is ready for Phase 2:
 ## 🧪 **Testing Strategy**
 
 ### **Phase 2 Testing Requirements**
+
 - **Authentication Testing**: Login/logout, session management
 - **Data Testing**: CRUD operations for all entities
 - **Integration Testing**: Guest-to-user conversion flow
@@ -243,6 +271,7 @@ The existing schema is ready for Phase 2:
 - **Performance Testing**: Database query optimization
 
 ### **User Acceptance Testing**
+
 - Create test accounts and run through complete user journey
 - Test guest mode to authenticated user conversion
 - Verify test result storage and retrieval
@@ -253,18 +282,21 @@ The existing schema is ready for Phase 2:
 ## 🔧 **Development Setup for Phase 2**
 
 ### **Required Environment Variables**
+
 Already configured:
+
 - `NEXT_PUBLIC_SUPABASE_URL`
 - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
 - `SUPABASE_SERVICE_ROLE_KEY`
 - `OPENAI_API_KEY`
 
 ### **Additional Dependencies Needed**
+
 ```bash
 # Chart library for trends
 npm install recharts
 
-# Date handling for reminders  
+# Date handling for reminders
 npm install date-fns
 
 # Email notifications
@@ -272,6 +304,7 @@ npm install @supabase/auth-helpers-nextjs
 ```
 
 ### **Database Migrations**
+
 No additional migrations needed - existing schema supports Phase 2 features.
 
 ---
@@ -279,6 +312,7 @@ No additional migrations needed - existing schema supports Phase 2 features.
 ## 📊 **Success Metrics for Phase 2**
 
 ### **Technical Metrics**
+
 - [ ] User registration and login flow working
 - [ ] Test results successfully saved and retrieved
 - [ ] Multi-unit management functional
@@ -286,6 +320,7 @@ No additional migrations needed - existing schema supports Phase 2 features.
 - [ ] Mobile experience optimized
 
 ### **User Experience Metrics**
+
 - [ ] Guest-to-user conversion flow intuitive
 - [ ] Dashboard provides clear value
 - [ ] Unit management is straightforward
@@ -312,6 +347,7 @@ Phase 2 will be considered complete when:
 ## 📝 **Getting Started with Phase 2**
 
 ### **Immediate Next Steps**
+
 1. **Review Current Implementation**: Understand Phase 1 codebase
 2. **Set up Development Environment**: Ensure all tools are ready
 3. **Create Development Branch**: `git checkout -b phase-2-development`
@@ -319,6 +355,7 @@ Phase 2 will be considered complete when:
 5. **Follow CI/CD Process**: Use existing pipeline for safe development
 
 ### **Recommended Starting Point**
+
 Begin with **Epic 1: User Authentication** as it's the foundation for all other Phase 2 features. The existing Supabase configuration makes this the logical first step.
 
 **First Task**: Create login and signup forms using Supabase Auth integration.

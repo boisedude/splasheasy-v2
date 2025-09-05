@@ -1,4 +1,5 @@
 # Technical Requirements Specification
+
 **SplashEasy V2 - AI-Powered Water Testing Platform**
 
 ---
@@ -12,18 +13,21 @@ SplashEasy V2 is a progressive web application that uses computer vision to anal
 **CRITICAL ARCHITECTURAL PRINCIPLE**: The system serves two distinct personas through completely separate interfaces:
 
 #### 1.1.1 Consumer Application (Free Users)
+
 - **Purpose**: Pure, simple water testing tool for residential pool owners
 - **Experience**: Clean, consumer-focused UI with zero business/commercial features
 - **Access**: Public web application, guest mode available
 - **Features**: AI water analysis, manual testing, unit management, maintenance reminders
 
-#### 1.1.2 Partner Portal (Pool Service Companies - Paid)  
+#### 1.1.2 Partner Portal (Pool Service Companies - Paid)
+
 - **Purpose**: Business management platform for pool service professionals
 - **Experience**: Separate portal/domain with comprehensive business tools
 - **Access**: Subscription-based access via partners.splasheasy.com
 - **Features**: Customer management, service scheduling, chemical sales, territory management
 
 #### 1.1.3 Separation Requirements
+
 - **REQ-ARCH-001**: Consumer app SHALL work completely independently of partner system
 - **REQ-ARCH-002**: Consumer users SHALL never see partner-related features or branding
 - **REQ-ARCH-003**: Partner features SHALL be developed as separate codebase or isolated modules
@@ -35,6 +39,7 @@ SplashEasy V2 is a progressive web application that uses computer vision to anal
 ### 2.1 Core Water Testing Features
 
 #### 2.1.1 Computer Vision Strip Analysis
+
 - **REQ-CV-001**: System SHALL capture test strip images via mobile camera
 - **REQ-CV-002**: System SHALL analyze strip colors using GPT-4 Vision via Vercel AI SDK
 - **REQ-CV-003**: System SHALL extract chemical readings (pH, chlorine, alkalinity, etc.)
@@ -47,6 +52,7 @@ SplashEasy V2 is a progressive web application that uses computer vision to anal
 - **REQ-CV-010**: System SHALL track accuracy metrics for continuous improvement
 
 #### 2.1.2 Manual Test Entry & Color Selection
+
 - **REQ-MTE-001**: System SHALL support manual numeric entry for all parameters
 - **REQ-MTE-002**: System SHALL provide visual color palette for strip color matching
 - **REQ-MTE-003**: System SHALL allow users to select colors that match their test strip
@@ -56,7 +62,8 @@ SplashEasy V2 is a progressive web application that uses computer vision to anal
 - **REQ-MTE-007**: System SHALL remember user's preferred test method (AI vs manual)
 - **REQ-MTE-008**: System SHALL provide seamless fallback when AI analysis fails
 
-#### 2.1.3 Results & Recommendations  
+#### 2.1.3 Results & Recommendations
+
 - **REQ-RES-001**: System SHALL display results with clear visual status indicators
 - **REQ-RES-002**: System SHALL provide specific dosing recommendations by chemical
 - **REQ-RES-003**: System SHALL calculate dosing based on unit volume and current readings
@@ -67,6 +74,7 @@ SplashEasy V2 is a progressive web application that uses computer vision to anal
 ### 2.2 Unit Management
 
 #### 2.2.1 Multi-Unit Support
+
 - **REQ-UNIT-001**: System SHALL support unlimited units per user
 - **REQ-UNIT-002**: System SHALL allow users to define unit specifications (volume, type, equipment)
 - **REQ-UNIT-003**: System SHALL provide unit selector for test entry
@@ -74,6 +82,7 @@ SplashEasy V2 is a progressive web application that uses computer vision to anal
 - **REQ-UNIT-005**: System SHALL support unit favoriting/starring
 
 #### 2.2.2 Unit Configuration
+
 - **REQ-CONFIG-001**: System SHALL capture unit volume in gallons
 - **REQ-CONFIG-002**: System SHALL support unit types (pool, spa, hot tub)
 - **REQ-CONFIG-003**: System SHALL allow sanitizer type selection (chlorine, bromine, salt)
@@ -82,6 +91,7 @@ SplashEasy V2 is a progressive web application that uses computer vision to anal
 ### 2.3 Historical Tracking & Analytics
 
 #### 2.3.1 Test History
+
 - **REQ-HIST-001**: System SHALL store all test results with timestamps
 - **REQ-HIST-002**: System SHALL associate tests with specific units
 - **REQ-HIST-003**: System SHALL provide chronological test listing
@@ -89,14 +99,16 @@ SplashEasy V2 is a progressive web application that uses computer vision to anal
 - **REQ-HIST-005**: System SHALL allow test deletion by owners
 
 #### 2.3.2 Trend Analysis
+
 - **REQ-TREND-001**: System SHALL display parameter trends over time
 - **REQ-TREND-002**: System SHALL provide visual charts for key parameters
-- **REQ-TREND-003**: System SHALL identify recurring issues and patterns  
+- **REQ-TREND-003**: System SHALL identify recurring issues and patterns
 - **REQ-TREND-004**: System SHALL suggest preventive actions based on trends
 
 ### 2.4 User Management & Authentication
 
 #### 2.4.1 Account Management
+
 - **REQ-AUTH-001**: System SHALL support email/password authentication via Supabase Auth
 - **REQ-AUTH-002**: System SHALL support social login (Google, Apple) via Supabase Auth
 - **REQ-AUTH-003**: System SHALL support magic link authentication via Supabase Auth
@@ -104,6 +116,7 @@ SplashEasy V2 is a progressive web application that uses computer vision to anal
 - **REQ-AUTH-005**: System SHALL support account deletion with GDPR compliance
 
 #### 2.4.2 Guest Mode
+
 - **REQ-GUEST-001**: System SHALL allow testing without account creation
 - **REQ-GUEST-002**: System SHALL provide conversion prompts for account benefits
 - **REQ-GUEST-003**: System SHALL limit guest features appropriately
@@ -175,6 +188,7 @@ SplashEasy V2 is a progressive web application that uses computer vision to anal
 ### 5.1 Data Entities
 
 #### 5.1.1 Users
+
 ```sql
 - id: UUID (primary key)
 - email: string (unique)
@@ -183,7 +197,8 @@ SplashEasy V2 is a progressive web application that uses computer vision to anal
 - preferences: JSON (default unit, test method, etc.)
 ```
 
-#### 5.1.2 Units  
+#### 5.1.2 Units
+
 ```sql
 - id: UUID (primary key)
 - user_id: UUID (foreign key)
@@ -196,12 +211,13 @@ SplashEasy V2 is a progressive web application that uses computer vision to anal
 ```
 
 #### 5.1.3 Water Tests
+
 ```sql
-- id: UUID (primary key)  
+- id: UUID (primary key)
 - unit_id: UUID (foreign key)
 - test_method: enum (computer_vision, manual)
 - ph: decimal(3,1)
-- free_chlorine: decimal(4,2) 
+- free_chlorine: decimal(4,2)
 - total_alkalinity: integer
 - cyanuric_acid: integer
 - total_hardness: integer
@@ -222,18 +238,21 @@ SplashEasy V2 is a progressive web application that uses computer vision to anal
 ## 6. Acceptance Criteria
 
 ### 6.1 Computer Vision Accuracy
+
 - Strip detection success rate: >98% under normal conditions
 - Chemical reading accuracy: ±0.1 pH, ±0.5 ppm chlorine, ±10 ppm alkalinity
 - False positive rate: <2%
 - Processing time: <5 seconds average
 
 ### 6.2 User Experience Metrics
+
 - Task completion rate: >90% for first-time users
 - Time to first successful test: <2 minutes
 - User satisfaction score: >4.5/5.0
 - Mobile usability score: >90% (Google PageSpeed Insights)
 
-### 6.3 Performance Benchmarks  
+### 6.3 Performance Benchmarks
+
 - Page load speed: <2 seconds (3G network)
 - Camera startup time: <1 second
 - API response time: <500ms (95th percentile)

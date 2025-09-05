@@ -21,13 +21,15 @@ const WaterTestResultSchema = z.object({
   notes: z.string().optional(),
   readable_strips: z.boolean(),
   error_message: z.string().optional(),
-  individual_confidence: z.object({
-    ph: z.number().min(0).max(1).optional(),
-    free_chlorine: z.number().min(0).max(1).optional(),
-    total_alkalinity: z.number().min(0).max(1).optional(),
-    cyanuric_acid: z.number().min(0).max(1).optional(),
-    total_hardness: z.number().min(0).max(1).optional(),
-  }).optional()
+  individual_confidence: z
+    .object({
+      ph: z.number().min(0).max(1).optional(),
+      free_chlorine: z.number().min(0).max(1).optional(),
+      total_alkalinity: z.number().min(0).max(1).optional(),
+      cyanuric_acid: z.number().min(0).max(1).optional(),
+      total_hardness: z.number().min(0).max(1).optional(),
+    })
+    .optional(),
 })
 
 type WaterTestResult = z.infer<typeof WaterTestResultSchema>
@@ -39,13 +41,10 @@ function isValidImageFormat(imageData: string): boolean {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    
+
     // Validate required fields
     if (!body.image) {
-      return NextResponse.json(
-        { error: 'Image data is required' },
-        { status: 400 }
-      )
+      return NextResponse.json({ error: 'Image data is required' }, { status: 400 })
     }
 
     // Extract optional location, historical data, and user context
@@ -60,10 +59,7 @@ export async function POST(request: NextRequest) {
 
     // Check API key
     if (!process.env.OPENAI_API_KEY) {
-      return NextResponse.json(
-        { error: 'OpenAI API key not configured' },
-        { status: 500 }
-      )
+      return NextResponse.json({ error: 'OpenAI API key not configured' }, { status: 500 })
     }
 
     const systemPrompt = `You are an expert water chemistry analyst with extensive knowledge of different test strip brands. Analyze pool/spa test strips in images and extract chemical readings with brand recognition.
@@ -128,40 +124,37 @@ Return ONLY valid JSON matching this exact structure:
 
     // Call GPT-4 Vision API
     const response = await openai.chat.completions.create({
-      model: "gpt-4o",
+      model: 'gpt-4o',
       messages: [
         {
-          role: "system",
-          content: systemPrompt
+          role: 'system',
+          content: systemPrompt,
         },
         {
-          role: "user",
+          role: 'user',
           content: [
             {
-              type: "text",
-              text: "Please analyze this water test strip and provide the chemical readings in the specified JSON format."
+              type: 'text',
+              text: 'Please analyze this water test strip and provide the chemical readings in the specified JSON format.',
             },
             {
-              type: "image_url",
+              type: 'image_url',
               image_url: {
                 url: body.image,
-                detail: "high"
-              }
-            }
-          ]
-        }
+                detail: 'high',
+              },
+            },
+          ],
+        },
       ],
       max_tokens: 1000,
-      temperature: 0.1
+      temperature: 0.1,
     })
 
     const aiResponse = response.choices[0]?.message?.content
 
     if (!aiResponse) {
-      return NextResponse.json(
-        { error: 'No response from AI analysis' },
-        { status: 500 }
-      )
+      return NextResponse.json({ error: 'No response from AI analysis' }, { status: 500 })
     }
 
     // Parse and validate AI response
@@ -171,16 +164,22 @@ Return ONLY valid JSON matching this exact structure:
       analysisResult = WaterTestResultSchema.parse(parsedResponse)
     } catch (parseError) {
       console.error('Failed to parse AI response:', parseError)
-      return NextResponse.json({
-        error: 'Failed to parse analysis results',
-        raw_response: aiResponse
-      }, { status: 500 })
+      return NextResponse.json(
+        {
+          error: 'Failed to parse analysis results',
+          raw_response: aiResponse,
+        },
+        { status: 500 }
+      )
     }
 
     // Get weather-based recommendations if location provided
     let weatherRecommendations = null
     if (latitude && longitude && typeof latitude === 'number' && typeof longitude === 'number') {
-      weatherRecommendations = await WeatherService.getLocationBasedRecommendations(latitude, longitude)
+      weatherRecommendations = await WeatherService.getLocationBasedRecommendations(
+        latitude,
+        longitude
+      )
     }
 
     // Get historical context if requested
@@ -195,10 +194,10 @@ Return ONLY valid JSON matching this exact structure:
         total_alkalinity: analysisResult.total_alkalinity,
         cyanuric_acid: analysisResult.cyanuric_acid,
         total_hardness: analysisResult.total_hardness,
-        confidence_score: analysisResult.confidence_score
+        confidence_score: analysisResult.confidence_score,
       }
       historicalContext = HistoricalAnalysis.analyzeTrends(historicalReadings, currentReading)
-      
+
       // Save current reading to database if user context available
       if (user_id && unit_id) {
         await HistoricalAnalysis.saveTestResult(currentReading, user_id, unit_id, body.image_url)
@@ -211,12 +210,11 @@ Return ONLY valid JSON matching this exact structure:
       analysis: analysisResult,
       weather_recommendations: weatherRecommendations,
       historical_context: historicalContext,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     })
-
   } catch (error) {
     console.error('API Error:', error)
-    
+
     if (error instanceof Error) {
       if (error.message.includes('rate_limit')) {
         return NextResponse.json(
@@ -224,19 +222,13 @@ Return ONLY valid JSON matching this exact structure:
           { status: 429 }
         )
       }
-      
+
       if (error.message.includes('insufficient_quota')) {
-        return NextResponse.json(
-          { error: 'OpenAI API quota exceeded' },
-          { status: 503 }
-        )
+        return NextResponse.json({ error: 'OpenAI API quota exceeded' }, { status: 503 })
       }
     }
-    
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    )
+
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }
 
@@ -247,6 +239,6 @@ export async function GET() {
     implemented: true,
     message: 'GPT-4 Vision analysis ready for POST requests',
     openai_configured: !!process.env.OPENAI_API_KEY,
-    timestamp: new Date().toISOString()
+    timestamp: new Date().toISOString(),
   })
 }

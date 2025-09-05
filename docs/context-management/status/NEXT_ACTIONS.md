@@ -1,4 +1,5 @@
 # Next Actions - Priority Queue
+
 **SplashEasy V2 - Immediate Tasks for Next Agent**
 
 ---
@@ -6,11 +7,13 @@
 ## 🔥 CRITICAL (Do First - Session Blockers)
 
 ### **1. Execute Database Schema in Supabase**
+
 **Priority**: CRITICAL - All features depend on database structure  
 **Owner**: Next agent (Feature Development start)
 **No Timeline Pressure**: Quality over speed, solo development pace
 
 **Steps to Complete**:
+
 ```bash
 # 1. Open Supabase Dashboard
 # Go to https://supabase.com/dashboard/project/xblhoadgkohoxjpzjlsr
@@ -29,6 +32,7 @@ cat supabase-schema.sql
 ```
 
 **Success Criteria**:
+
 - [ ] All 4 tables created (profiles, units, water_tests, maintenance_reminders)
 - [ ] RLS policies active on all tables
 - [ ] Automatic profile creation trigger working
@@ -44,10 +48,12 @@ cat supabase-schema.sql
 ## ⚡ HIGH (Next Priority Features)
 
 ### **2. Add OpenAI API Key for GPT-4 Vision**
+
 **Priority**: HIGH - Required for AI water analysis  
 **Prerequisites**: Database schema executed
 
 **Steps to Complete**:
+
 ```bash
 # 1. Get OpenAI API Key
 # Visit https://platform.openai.com/api-keys
@@ -63,21 +69,25 @@ OPENAI_API_KEY=sk-your-openai-key-here
 ```
 
 **Files to Create/Modify**:
+
 - `.env.local` - Add OpenAI API key
 - `/app/api/test-ai/route.ts` - Test GPT-4 Vision connectivity
 - Test API call to verify billing and access
 
 **Success Criteria**:
+
 - [ ] OpenAI API key configured and working
 - [ ] GPT-4 Vision model accessible via Vercel AI SDK
 - [ ] Test image analysis returns structured data
 - [ ] API billing and rate limits confirmed
 
 ### **3. Build Camera Interface for Test Strip Photography**
+
 **Priority**: HIGH - Core user interaction  
 **Prerequisites**: OpenAI API key configured
 
 **Steps to Complete**:
+
 ```bash
 # 1. Create camera components
 # components/camera/CameraCapture.tsx - WebRTC camera interface
@@ -95,17 +105,19 @@ OPENAI_API_KEY=sk-your-openai-key-here
 ```
 
 **Camera Component Architecture**:
+
 ```typescript
 // Recommended structure:
 components/camera/
 ├── CameraCapture.tsx      # Main camera interface
-├── ImagePreview.tsx       # Show captured image  
+├── ImagePreview.tsx       # Show captured image
 ├── StripAlignment.tsx     # Visual positioning guide
 ├── TestStripGuide.tsx     # AquaChek/Taylor specific guides
 └── CameraControls.tsx     # Capture, retake, analyze buttons
 ```
 
 **Success Criteria**:
+
 - [ ] Camera opens and displays live video feed
 - [ ] Can capture high-quality images suitable for analysis
 - [ ] Image preview shows captured test strip clearly
@@ -113,10 +125,12 @@ components/camera/
 - [ ] Works on mobile devices (primary use case)
 
 ### **4. Implement GPT-4 Vision Analysis**
+
 **Priority**: HIGH - Core AI functionality
 **Prerequisites**: Camera interface working
 
 **Steps to Complete**:
+
 ```bash
 # 1. Create AI analysis API route
 # /app/api/analyze-strip/route.ts
@@ -132,6 +146,7 @@ components/camera/
 ```
 
 **API Implementation**:
+
 ```typescript
 // /app/api/analyze-strip/route.ts
 1. Receive image from camera
@@ -143,6 +158,7 @@ components/camera/
 ```
 
 **Success Criteria**:
+
 - [ ] API accepts images and returns structured chemistry data
 - [ ] Confidence scores indicate AI reliability
 - [ ] Supports AquaChek and Taylor test strips
@@ -154,20 +170,24 @@ components/camera/
 ## 📋 MEDIUM (Build Out User Experience)
 
 ### **5. Create Manual Color Selection Fallback**
+
 **Priority**: MEDIUM - Essential backup when AI fails
 **Prerequisites**: AI analysis implemented
 
 **Implementation**:
+
 - Color palette interface for manual strip reading
 - Parameter-by-parameter color selection
 - Same calculation engine as AI analysis
 - Seamless fallback when confidence < 80%
 
 ### **6. Build Guest User Testing Flow**
+
 **Priority**: MEDIUM - Core user journey
 **Prerequisites**: Camera + AI + Manual fallback ready
 
 **User Flow**:
+
 1. Landing page → Start testing (no signup)
 2. Camera interface → Capture strip
 3. AI analysis → Results display
@@ -175,10 +195,12 @@ components/camera/
 5. Basic dosing recommendations
 
 ### **7. Implement User Registration and Unit Creation**
+
 **Priority**: MEDIUM - Conversion and persistence
 **Prerequisites**: Guest flow working
 
 **Features**:
+
 - Supabase auth integration (already configured)
 - Unit creation form (name, type, volume, sanitizer)
 - Test history storage and retrieval
@@ -189,20 +211,24 @@ components/camera/
 ## 💡 LOW (Polish and Enhancement)
 
 ### **8. Add Maintenance Reminders**
+
 **Priority**: LOW - Value-add feature
 **Prerequisites**: User registration working
 
 **Features**:
+
 - Create recurring maintenance tasks
 - Calculate next due dates automatically
 - Simple reminder notifications
 - Mark tasks as complete
 
 ### **9. Build Dashboard and History**
+
 **Priority**: LOW - User engagement
 **Prerequisites**: Test storage working
 
 **Features**:
+
 - Dashboard with recent tests
 - Water chemistry trends over time
 - Unit management interface
@@ -213,18 +239,21 @@ components/camera/
 ## 🎯 Session Success Definition
 
 ### **Minimum Viable Progress**
+
 - [ ] Database schema executed successfully
 - [ ] Camera captures test strip images
 - [ ] AI analysis returns water chemistry data
 - [ ] Basic guest testing flow works end-to-end
 
 ### **Ideal Session Outcome**
+
 - [ ] Full guest user flow: Camera → AI → Manual fallback → Results
 - [ ] User registration and unit creation
 - [ ] Test history storage working
 - [ ] Mobile-optimized interface
 
 ### **Stretch Goals**
+
 - [ ] Dosing recommendations display correctly
 - [ ] Basic maintenance reminders
 - [ ] Performance optimized for mobile
@@ -234,6 +263,7 @@ components/camera/
 ## 📞 Context for Success
 
 ### **Available Resources**
+
 - ✅ Complete database schema ready to execute
 - ✅ TypeScript types and query helpers ready
 - ✅ Water chemistry calculation engine complete
@@ -242,12 +272,14 @@ components/camera/
 - ✅ shadcn/ui components available
 
 ### **Key Implementation Files**
+
 - `supabase-schema.sql` - Ready to execute database structure
 - `lib/types/database.ts` - Complete TypeScript definitions
 - `lib/database/queries.ts` - Ready-to-use query helpers
 - `lib/chemistry/calculator.ts` - Water analysis and dosing logic
 
 ### **Architectural Guidance**
+
 - Keep consumer experience pure and simple
 - Mobile-first responsive design
 - Guest mode should work without barriers
@@ -258,4 +290,4 @@ components/camera/
 
 **🚀 Next agent inherits a complete foundation ready for feature development!**
 
-*Updated: September 4, 2025 - Session 2 → 3 Handoff*
+_Updated: September 4, 2025 - Session 2 → 3 Handoff_

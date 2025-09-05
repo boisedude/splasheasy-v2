@@ -2,9 +2,9 @@ name: CI/CD Pipeline
 
 on:
   push:
-    branches: [ main, develop ]
+    branches: [main, develop]
   pull_request:
-    branches: [ main ]
+    branches: [main]
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -17,7 +17,7 @@ jobs:
   lint-and-typecheck:
     name: Code Quality
     runs-on: ubuntu-latest
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -46,7 +46,7 @@ jobs:
   security-scan:
     name: Security Audit
     runs-on: ubuntu-latest
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -77,7 +77,7 @@ jobs:
   api-tests:
     name: API Tests
     runs-on: ubuntu-latest
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -105,10 +105,10 @@ jobs:
         run: |
           # Test homepage
           curl -f http://localhost:3000/ || exit 1
-          
+
           # Test API health endpoint  
           curl -f http://localhost:3000/api/analyze || exit 1
-          
+
           # Test API validation
           response=$(curl -s -X POST http://localhost:3000/api/analyze -H "Content-Type: application/json" -d '{}')
           echo "$response" | grep -q "Image data is required" || exit 1
@@ -121,11 +121,11 @@ jobs:
     runs-on: ubuntu-latest
     needs: [lint-and-typecheck, security-scan, api-tests]
     if: github.ref == 'refs/heads/develop'
-    
+
     environment:
       name: staging
       url: ${{ steps.deploy.outputs.preview-url }}
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -144,11 +144,11 @@ jobs:
     runs-on: ubuntu-latest
     needs: [lint-and-typecheck, security-scan, api-tests]
     if: github.ref == 'refs/heads/main'
-    
+
     environment:
       name: production
       url: ${{ steps.deploy.outputs.preview-url }}
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -182,7 +182,7 @@ jobs:
     name: Dependency Updates
     runs-on: ubuntu-latest
     if: github.event_name == 'schedule'
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -197,7 +197,7 @@ jobs:
         run: |
           npm update
           npm audit fix --force
-          
+
       - name: Create Pull Request
         uses: peter-evans/create-pull-request@v5
         with:
@@ -206,11 +206,11 @@ jobs:
           title: '🔄 Automated Dependency Updates'
           body: |
             ## 🔄 Automated Dependency Updates
-            
+
             This PR contains automated dependency updates:
             - Security patches applied
             - Minor version updates
             - Audit fixes
-            
+
             **Please review and test before merging.**
           branch: automated-dependency-updates

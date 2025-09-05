@@ -3,6 +3,7 @@
 ## Quick Deploy to Vercel
 
 ### Prerequisites ✅
+
 - [x] Vercel account created
 - [x] Vercel API Token configured
 - [x] OpenAI API Key configured
@@ -17,10 +18,11 @@ npx vercel --prod
 ### Step-by-Step Deployment
 
 1. **Initialize Vercel Project**
+
    ```bash
    npx vercel login
    # Use your Vercel credentials
-   
+
    npx vercel
    # Follow prompts:
    # - Set up project: Yes
@@ -31,12 +33,13 @@ npx vercel --prod
    ```
 
 2. **Configure Environment Variables**
-   
+
    After first deployment, add these environment variables in Vercel Dashboard:
-   
+
    **Go to**: https://vercel.com/dashboard → Your Project → Settings → Environment Variables
-   
+
    **Add these variables:**
+
    ```
    NEXT_PUBLIC_SUPABASE_URL = https://your-project-id.supabase.co
    NEXT_PUBLIC_SUPABASE_ANON_KEY = your-supabase-anon-key
@@ -52,6 +55,7 @@ npx vercel --prod
 ## Alternative: Deploy via Git Integration
 
 1. **Push to GitHub**
+
    ```bash
    git init
    git add .
@@ -92,14 +96,17 @@ After deployment, test these features:
 ### Common Issues:
 
 **Camera not working:**
+
 - Ensure deployment is HTTPS (Vercel provides this automatically)
 - Check browser permissions for camera access
 
 **AI analysis failing:**
+
 - Verify OpenAI API key is correctly set in Vercel environment variables
 - Check Vercel function logs for errors
 
 **Database errors:**
+
 - Confirm Supabase schema has been executed
 - Check Supabase credentials in environment variables
 
@@ -145,6 +152,7 @@ The app is configured for optimal performance:
 ## Monitoring & Analytics 📊
 
 Consider adding:
+
 - Vercel Analytics (built-in)
 - Error tracking (Sentry)
 - User analytics (Plausible/Google Analytics)

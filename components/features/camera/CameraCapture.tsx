@@ -10,16 +10,16 @@ interface CameraCaptureProps {
   className?: string
 }
 
-export default function CameraCapture({ 
-  onImageCapture, 
-  onCancel, 
-  className = '' 
+export default function CameraCapture({
+  onImageCapture,
+  onCancel,
+  className = '',
 }: CameraCaptureProps) {
   const [isStreamActive, setIsStreamActive] = useState(false)
   const [capturedImage, setCapturedImage] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [facingMode, setFacingMode] = useState<'user' | 'environment'>('environment')
-  
+
   const videoRef = useRef<HTMLVideoElement>(null)
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const streamRef = useRef<MediaStream | null>(null)
@@ -27,18 +27,18 @@ export default function CameraCapture({
   const startCamera = useCallback(async () => {
     try {
       setError(null)
-      
+
       const constraints: MediaStreamConstraints = {
         video: {
           facingMode,
           width: { ideal: 1280 },
-          height: { ideal: 720 }
-        }
+          height: { ideal: 720 },
+        },
       }
 
       const stream = await navigator.mediaDevices.getUserMedia(constraints)
       streamRef.current = stream
-      
+
       if (videoRef.current) {
         videoRef.current.srcObject = stream
         setIsStreamActive(true)
@@ -63,14 +63,14 @@ export default function CameraCapture({
     const video = videoRef.current
     const canvas = canvasRef.current
     const context = canvas.getContext('2d')
-    
+
     if (!context) return
 
     canvas.width = video.videoWidth
     canvas.height = video.videoHeight
-    
+
     context.drawImage(video, 0, 0, canvas.width, canvas.height)
-    
+
     const imageData = canvas.toDataURL('image/jpeg', 0.8)
     setCapturedImage(imageData)
     stopCamera()
@@ -88,7 +88,7 @@ export default function CameraCapture({
   }, [capturedImage, onImageCapture])
 
   const flipCamera = useCallback(() => {
-    setFacingMode(prev => prev === 'user' ? 'environment' : 'user')
+    setFacingMode(prev => (prev === 'user' ? 'environment' : 'user'))
     if (isStreamActive) {
       stopCamera()
       setTimeout(startCamera, 100)
@@ -96,11 +96,13 @@ export default function CameraCapture({
   }, [isStreamActive, stopCamera, startCamera])
 
   return (
-    <div className={`w-full max-w-md mx-auto bg-white rounded-lg shadow-lg overflow-hidden ${className}`}>
+    <div
+      className={`mx-auto w-full max-w-md overflow-hidden rounded-lg bg-white shadow-lg ${className}`}
+    >
       {/* Header */}
-      <div className="bg-blue-600 text-white p-4">
+      <div className="bg-blue-600 p-4 text-white">
         <h3 className="text-lg font-semibold">Take Test Strip Photo</h3>
-        <p className="text-blue-100 text-sm mt-1">
+        <p className="mt-1 text-sm text-blue-100">
           Position your test strip in the frame and capture
         </p>
       </div>
@@ -108,11 +110,11 @@ export default function CameraCapture({
       {/* Camera/Preview Area */}
       <div className="relative">
         {error && (
-          <div className="p-4 bg-red-50 border-l-4 border-red-400">
-            <p className="text-red-700 text-sm">{error}</p>
-            <button 
+          <div className="border-l-4 border-red-400 bg-red-50 p-4">
+            <p className="text-sm text-red-700">{error}</p>
+            <button
               onClick={startCamera}
-              className="text-red-600 hover:text-red-800 text-sm underline mt-2"
+              className="mt-2 text-sm text-red-600 underline hover:text-red-800"
             >
               Try Again
             </button>
@@ -120,10 +122,10 @@ export default function CameraCapture({
         )}
 
         {!isStreamActive && !capturedImage && !error && (
-          <div className="aspect-[4/3] bg-gray-100 flex items-center justify-center">
+          <div className="flex aspect-[4/3] items-center justify-center bg-gray-100">
             <button
               onClick={startCamera}
-              className="flex flex-col items-center space-y-2 p-6 rounded-lg hover:bg-gray-50 transition-colors"
+              className="flex flex-col items-center space-y-2 rounded-lg p-6 transition-colors hover:bg-gray-50"
             >
               <Camera size={48} className="text-gray-400" />
               <span className="text-gray-600">Start Camera</span>
@@ -138,12 +140,12 @@ export default function CameraCapture({
               autoPlay
               playsInline
               muted
-              className="w-full h-full object-cover"
+              className="h-full w-full object-cover"
             />
-            
+
             {/* Overlay guide */}
-            <div className="absolute inset-4 border-2 border-white border-dashed rounded-lg flex items-center justify-center">
-              <span className="bg-black bg-opacity-50 text-white px-3 py-1 rounded text-sm">
+            <div className="absolute inset-4 flex items-center justify-center rounded-lg border-2 border-dashed border-white">
+              <span className="rounded bg-black bg-opacity-50 px-3 py-1 text-sm text-white">
                 Align test strip here
               </span>
             </div>
@@ -152,12 +154,7 @@ export default function CameraCapture({
 
         {capturedImage && (
           <div className="relative aspect-[4/3]">
-            <Image
-              src={capturedImage}
-              alt="Captured test strip"
-              fill
-              className="object-cover"
-            />
+            <Image src={capturedImage} alt="Captured test strip" fill className="object-cover" />
           </div>
         )}
 
@@ -165,28 +162,28 @@ export default function CameraCapture({
       </div>
 
       {/* Controls */}
-      <div className="p-4 bg-gray-50">
+      <div className="bg-gray-50 p-4">
         {isStreamActive && (
           <div className="flex justify-center space-x-4">
             <button
               onClick={flipCamera}
-              className="p-3 bg-gray-200 hover:bg-gray-300 rounded-full transition-colors"
+              className="rounded-full bg-gray-200 p-3 transition-colors hover:bg-gray-300"
               title="Flip Camera"
             >
               <RotateCcw size={20} />
             </button>
-            
+
             <button
               onClick={capturePhoto}
-              className="px-8 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors font-medium"
+              className="rounded-lg bg-blue-600 px-8 py-3 font-medium text-white transition-colors hover:bg-blue-700"
             >
               Capture Photo
             </button>
-            
+
             {onCancel && (
               <button
                 onClick={onCancel}
-                className="p-3 bg-gray-200 hover:bg-gray-300 rounded-full transition-colors"
+                className="rounded-full bg-gray-200 p-3 transition-colors hover:bg-gray-300"
                 title="Cancel"
               >
                 <X size={20} />
@@ -199,14 +196,14 @@ export default function CameraCapture({
           <div className="flex justify-center space-x-4">
             <button
               onClick={retakePhoto}
-              className="px-6 py-3 bg-gray-500 hover:bg-gray-600 text-white rounded-lg transition-colors font-medium"
+              className="rounded-lg bg-gray-500 px-6 py-3 font-medium text-white transition-colors hover:bg-gray-600"
             >
               Retake
             </button>
-            
+
             <button
               onClick={confirmPhoto}
-              className="px-8 py-3 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors font-medium flex items-center space-x-2"
+              className="flex items-center space-x-2 rounded-lg bg-green-600 px-8 py-3 font-medium text-white transition-colors hover:bg-green-700"
             >
               <Check size={18} />
               <span>Use This Photo</span>
@@ -216,13 +213,13 @@ export default function CameraCapture({
 
         {!isStreamActive && !capturedImage && !error && (
           <div className="text-center">
-            <p className="text-gray-500 text-sm mb-3">
+            <p className="mb-3 text-sm text-gray-500">
               Camera access is required for AI water testing
             </p>
             {onCancel && (
               <button
                 onClick={onCancel}
-                className="px-4 py-2 text-gray-600 hover:text-gray-800 transition-colors"
+                className="px-4 py-2 text-gray-600 transition-colors hover:text-gray-800"
               >
                 Cancel
               </button>
