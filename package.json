@@ -1,10 +1,19 @@
 {
+  "name": "splasheasy-v2",
+  "version": "1.0.0",
+  "description": "AI-Powered Water Testing Application - Production Ready",
+  "homepage": "https://splasheasy-v2-44a6wr80d-michael-coopers-projects-69eead79.vercel.app",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/your-username/splasheasy-v2"
+  },
+  "keywords": ["ai", "water-testing", "pool", "spa", "gpt-4-vision", "nextjs"],
   "private": true,
   "scripts": {
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "eslint ."
   },
   "dependencies": {
     "@radix-ui/react-checkbox": "^1.3.1",
