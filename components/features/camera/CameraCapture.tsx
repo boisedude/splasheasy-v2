@@ -2,7 +2,7 @@
 
 import { useState, useRef, useCallback } from 'react'
 import Image from 'next/image'
-import { Camera, RotateCcw, Check, X } from 'lucide-react'
+import { Camera, RotateCcw, Check, X, Upload, Smartphone } from 'lucide-react'
 
 interface CameraCaptureProps {
   onImageCapture: (imageData: string) => void
@@ -15,6 +15,7 @@ export default function CameraCapture({
   onCancel,
   className = '',
 }: CameraCaptureProps) {
+  const [mode, setMode] = useState<'camera' | 'upload' | 'selection'>('selection')
   const [isStreamActive, setIsStreamActive] = useState(false)
   const [capturedImage, setCapturedImage] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
@@ -23,10 +24,12 @@ export default function CameraCapture({
   const videoRef = useRef<HTMLVideoElement>(null)
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const streamRef = useRef<MediaStream | null>(null)
+  const fileInputRef = useRef<HTMLInputElement>(null)
 
   const startCamera = useCallback(async () => {
     try {
       setError(null)
+      setMode('camera')
 
       const constraints: MediaStreamConstraints = {
         video: {
@@ -44,8 +47,9 @@ export default function CameraCapture({
         setIsStreamActive(true)
       }
     } catch (err) {
-      setError('Camera access denied. Please allow camera permissions and try again.')
+      setError('Camera access denied. Try uploading a photo instead.')
       console.error('Camera error:', err)
+      setMode('selection')
     }
   }, [facingMode])
 
@@ -95,45 +99,123 @@ export default function CameraCapture({
     }
   }, [isStreamActive, stopCamera, startCamera])
 
+  const handleFileUpload = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]
+    if (!file) return
+
+    if (!file.type.startsWith('image/')) {
+      setError('Please select a valid image file.')
+      return
+    }
+
+    const reader = new FileReader()
+    reader.onload = (e) => {
+      const result = e.target?.result as string
+      if (result) {
+        setCapturedImage(result)
+        setMode('upload')
+        setError(null)
+      }
+    }
+    reader.onerror = () => {
+      setError('Failed to read image file.')
+    }
+    reader.readAsDataURL(file)
+  }, [])
+
+  const triggerFileUpload = useCallback(() => {
+    fileInputRef.current?.click()
+  }, [])
+
+  const backToSelection = useCallback(() => {
+    setCapturedImage(null)
+    setMode('selection')
+    setError(null)
+    stopCamera()
+  }, [stopCamera])
+
   return (
     <div
       className={`mx-auto w-full max-w-md overflow-hidden rounded-lg bg-white shadow-lg ${className}`}
     >
       {/* Header */}
       <div className="bg-blue-600 p-4 text-white">
-        <h3 className="text-lg font-semibold">Take Test Strip Photo</h3>
+        <h3 className="text-lg font-semibold">
+          {mode === 'selection' ? 'Add Test Strip Photo' : 'Test Strip Photo'}
+        </h3>
         <p className="mt-1 text-sm text-blue-100">
-          Position your test strip in the frame and capture
+          {mode === 'selection' 
+            ? 'Choose to take a photo or upload an existing image'
+            : mode === 'camera'
+            ? 'Position your test strip in the frame and capture'
+            : 'Your uploaded test strip image'
+          }
         </p>
       </div>
 
-      {/* Camera/Preview Area */}
+      {/* Hidden file input */}
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="image/*"
+        onChange={handleFileUpload}
+        className="hidden"
+      />
+
+      {/* Main Content Area */}
       <div className="relative">
         {error && (
           <div className="border-l-4 border-red-400 bg-red-50 p-4">
             <p className="text-sm text-red-700">{error}</p>
-            <button
-              onClick={startCamera}
-              className="mt-2 text-sm text-red-600 underline hover:text-red-800"
-            >
-              Try Again
-            </button>
+            <div className="mt-2 space-x-2">
+              {mode !== 'selection' && (
+                <button
+                  onClick={backToSelection}
+                  className="text-sm text-red-600 underline hover:text-red-800"
+                >
+                  Try Different Method
+                </button>
+              )}
+            </div>
           </div>
         )}
 
-        {!isStreamActive && !capturedImage && !error && (
-          <div className="flex aspect-[4/3] items-center justify-center bg-gray-100">
-            <button
-              onClick={startCamera}
-              className="flex flex-col items-center space-y-2 rounded-lg p-6 transition-colors hover:bg-gray-50"
-            >
-              <Camera size={48} className="text-gray-400" />
-              <span className="text-gray-600">Start Camera</span>
-            </button>
+        {/* Mode Selection */}
+        {mode === 'selection' && !capturedImage && (
+          <div className="space-y-4 p-6">
+            <div className="grid gap-4">
+              <button
+                onClick={startCamera}
+                className="flex items-center space-x-4 rounded-lg border-2 border-gray-200 p-4 transition-all hover:border-blue-300 hover:bg-blue-50"
+              >
+                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-blue-100">
+                  <Camera size={24} className="text-blue-600" />
+                </div>
+                <div className="text-left">
+                  <h4 className="font-medium text-gray-900">Use Camera</h4>
+                  <p className="text-sm text-gray-500">Take a photo with your device camera</p>
+                </div>
+                <Smartphone size={20} className="ml-auto text-gray-400" />
+              </button>
+
+              <button
+                onClick={triggerFileUpload}
+                className="flex items-center space-x-4 rounded-lg border-2 border-gray-200 p-4 transition-all hover:border-green-300 hover:bg-green-50"
+              >
+                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-green-100">
+                  <Upload size={24} className="text-green-600" />
+                </div>
+                <div className="text-left">
+                  <h4 className="font-medium text-gray-900">Upload Photo</h4>
+                  <p className="text-sm text-gray-500">Select an existing photo from your device</p>
+                </div>
+              </button>
+            </div>
           </div>
         )}
 
-        {isStreamActive && (
+        {/* Camera Mode */}
+        {mode === 'camera' && isStreamActive && (
           <div className="relative aspect-[4/3]">
             <video
               ref={videoRef}
@@ -142,8 +224,6 @@ export default function CameraCapture({
               muted
               className="h-full w-full object-cover"
             />
-
-            {/* Overlay guide */}
             <div className="absolute inset-4 flex items-center justify-center rounded-lg border-2 border-dashed border-white">
               <span className="rounded bg-black bg-opacity-50 px-3 py-1 text-sm text-white">
                 Align test strip here
@@ -152,9 +232,10 @@ export default function CameraCapture({
           </div>
         )}
 
+        {/* Captured/Uploaded Image Preview */}
         {capturedImage && (
           <div className="relative aspect-[4/3]">
-            <Image src={capturedImage} alt="Captured test strip" fill className="object-cover" />
+            <Image src={capturedImage} alt="Test strip" fill className="object-cover" />
           </div>
         )}
 
@@ -163,7 +244,8 @@ export default function CameraCapture({
 
       {/* Controls */}
       <div className="bg-gray-50 p-4">
-        {isStreamActive && (
+        {/* Camera Controls */}
+        {mode === 'camera' && isStreamActive && (
           <div className="flex justify-center space-x-4">
             <button
               onClick={flipCamera}
@@ -180,25 +262,24 @@ export default function CameraCapture({
               Capture Photo
             </button>
 
-            {onCancel && (
-              <button
-                onClick={onCancel}
-                className="rounded-full bg-gray-200 p-3 transition-colors hover:bg-gray-300"
-                title="Cancel"
-              >
-                <X size={20} />
-              </button>
-            )}
+            <button
+              onClick={backToSelection}
+              className="rounded-full bg-gray-200 p-3 transition-colors hover:bg-gray-300"
+              title="Back"
+            >
+              <X size={20} />
+            </button>
           </div>
         )}
 
+        {/* Image Confirmation Controls */}
         {capturedImage && (
           <div className="flex justify-center space-x-4">
             <button
-              onClick={retakePhoto}
+              onClick={mode === 'camera' ? retakePhoto : backToSelection}
               className="rounded-lg bg-gray-500 px-6 py-3 font-medium text-white transition-colors hover:bg-gray-600"
             >
-              Retake
+              {mode === 'camera' ? 'Retake' : 'Choose Different'}
             </button>
 
             <button
@@ -211,19 +292,15 @@ export default function CameraCapture({
           </div>
         )}
 
-        {!isStreamActive && !capturedImage && !error && (
+        {/* Selection Mode Footer */}
+        {mode === 'selection' && !capturedImage && !error && onCancel && (
           <div className="text-center">
-            <p className="mb-3 text-sm text-gray-500">
-              Camera access is required for AI water testing
-            </p>
-            {onCancel && (
-              <button
-                onClick={onCancel}
-                className="px-4 py-2 text-gray-600 transition-colors hover:text-gray-800"
-              >
-                Cancel
-              </button>
-            )}
+            <button
+              onClick={onCancel}
+              className="px-4 py-2 text-gray-600 transition-colors hover:text-gray-800"
+            >
+              Cancel
+            </button>
           </div>
         )}
       </div>

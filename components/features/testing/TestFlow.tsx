@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
-import { Droplets, Camera, BarChart3, Loader2, Brain, Cloud, TrendingUp } from 'lucide-react'
+import { Droplets, Camera, BarChart3, Loader2, Brain, Cloud, TrendingUp, Calculator } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import {
@@ -12,11 +12,12 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import CameraCapture from '@/components/features/camera/CameraCapture'
+import ManualInput, { ManualTestResults } from '@/components/features/manual/ManualInput'
 import TestResults from '@/components/features/results/TestResults'
 import { useAuth } from '@/lib/auth-context'
 import { createSupabaseBrowserClient } from '@/lib/supabase'
 
-type TestState = 'setup' | 'camera' | 'analyzing' | 'results'
+type TestState = 'setup' | 'input-method' | 'camera' | 'manual' | 'analyzing' | 'results'
 
 interface Unit {
   id: string
@@ -117,13 +118,13 @@ export function TestFlow() {
 
   const handleStartTest = () => {
     if (user && userUnits.length === 0) {
-      // User has no units, skip to camera
-      setCurrentState('camera')
+      // User has no units, go to input method selection
+      setCurrentState('input-method')
     } else if (user && !selectedUnit) {
       // User has units but none selected
       return
     } else {
-      setCurrentState('camera')
+      setCurrentState('input-method')
     }
 
     setError(null)
@@ -142,6 +143,10 @@ export function TestFlow() {
         }
       )
     }
+  }
+
+  const handleInputMethodSelection = (method: 'camera' | 'manual') => {
+    setCurrentState(method)
   }
 
   const handleImageCapture = async (imageData: string) => {
@@ -204,8 +209,88 @@ export function TestFlow() {
     }
   }
 
+  const handleManualResults = async (manualResults: ManualTestResults) => {
+    setCurrentState('analyzing')
+    setError(null)
+
+    try {
+      // Convert manual results to the expected format
+      const analysisResult: AnalysisResult = {
+        ph: manualResults.ph,
+        free_chlorine: manualResults.chlorine,
+        total_alkalinity: manualResults.alkalinity,
+        cyanuric_acid: manualResults.cyanuricAcid,
+        total_hardness: manualResults.hardness,
+        confidence_score: 1.0, // Manual entry is 100% confident
+        brand_detected: 'Manual Entry',
+        brand_confidence: 1.0,
+        strip_type: 'Manual Input',
+        notes: manualResults.notes,
+        readable_strips: true,
+      }
+
+      // Prepare request for weather and historical data
+      const requestBody: {
+        manual_results: ManualTestResults
+        include_trends: boolean
+        latitude?: number
+        longitude?: number
+        user_id?: string
+        unit_id?: string
+      } = {
+        manual_results: manualResults,
+        include_trends: true,
+      }
+
+      // Add authenticated user context
+      if (user) {
+        requestBody.user_id = user.id
+        if (selectedUnit) {
+          requestBody.unit_id = selectedUnit.id
+        }
+      }
+
+      // Add location for weather recommendations if available
+      if (userLocation) {
+        requestBody.latitude = userLocation.latitude
+        requestBody.longitude = userLocation.longitude
+      }
+
+      const response = await fetch('/api/analyze', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(requestBody),
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Analysis failed')
+      }
+
+      setAnalysisResult(analysisResult)
+      setWeatherRecommendations(data.weather_recommendations)
+      setHistoricalContext(data.historical_context)
+      setCurrentState('results')
+    } catch (err) {
+      console.error('Manual analysis error:', err)
+      setError(err instanceof Error ? err.message : 'Analysis failed')
+      setCurrentState('manual')
+    }
+  }
+
   const handleRetakePhoto = () => {
     setCurrentState('camera')
+    setAnalysisResult(null)
+    setWeatherRecommendations(null)
+    setHistoricalContext(null)
+    setError(null)
+  }
+
+  const handleBackToInputMethod = () => {
+    setCurrentState('input-method')
     setAnalysisResult(null)
     setWeatherRecommendations(null)
     setHistoricalContext(null)
@@ -312,6 +397,58 @@ export function TestFlow() {
     )
   }
 
+  // Input method selection screen
+  if (currentState === 'input-method') {
+    return (
+      <div className="mx-auto max-w-2xl">
+        <div className="mb-6 text-center">
+          <h1 className="mb-2 text-2xl font-bold text-gray-900">
+            {selectedUnit ? `Testing ${selectedUnit.name}` : 'Water Test Analysis'}
+          </h1>
+          <p className="text-gray-600">Choose your preferred testing method</p>
+        </div>
+
+        <Card>
+          <CardContent className="p-6">
+            <div className="space-y-4">
+              <button
+                onClick={() => handleInputMethodSelection('camera')}
+                className="flex w-full items-center space-x-4 rounded-lg border-2 border-gray-200 p-4 text-left transition-all hover:border-blue-300 hover:bg-blue-50"
+              >
+                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-blue-100">
+                  <Camera size={24} className="text-blue-600" />
+                </div>
+                <div className="flex-1">
+                  <h3 className="font-medium text-gray-900">Camera or Photo Upload</h3>
+                  <p className="text-sm text-gray-500">Take a photo or upload an existing image of your test strip</p>
+                </div>
+              </button>
+
+              <button
+                onClick={() => handleInputMethodSelection('manual')}
+                className="flex w-full items-center space-x-4 rounded-lg border-2 border-gray-200 p-4 text-left transition-all hover:border-green-300 hover:bg-green-50"
+              >
+                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-green-100">
+                  <Calculator size={24} className="text-green-600" />
+                </div>
+                <div className="flex-1">
+                  <h3 className="font-medium text-gray-900">Manual Entry</h3>
+                  <p className="text-sm text-gray-500">Enter your test results manually by typing in the values</p>
+                </div>
+              </button>
+            </div>
+
+            <div className="mt-6 text-center">
+              <Button onClick={handleBackToSetup} variant="outline">
+                Back to Setup
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    )
+  }
+
   // Camera capture screen
   if (currentState === 'camera') {
     return (
@@ -329,7 +466,29 @@ export function TestFlow() {
           </div>
         )}
 
-        <CameraCapture onImageCapture={handleImageCapture} onCancel={handleBackToSetup} />
+        <CameraCapture onImageCapture={handleImageCapture} onCancel={handleBackToInputMethod} />
+      </div>
+    )
+  }
+
+  // Manual input screen
+  if (currentState === 'manual') {
+    return (
+      <div className="mx-auto max-w-2xl">
+        <div className="mb-6 text-center">
+          <h1 className="mb-2 text-2xl font-bold text-gray-900">
+            {selectedUnit ? `Testing ${selectedUnit.name}` : 'Water Test Analysis'}
+          </h1>
+          <p className="text-gray-600">Enter your test measurements manually</p>
+        </div>
+
+        {error && (
+          <div className="mb-6 rounded-lg border border-red-200 bg-red-50 p-4">
+            <p className="text-sm text-red-700">{error}</p>
+          </div>
+        )}
+
+        <ManualInput onResultsSubmit={handleManualResults} onCancel={handleBackToInputMethod} />
       </div>
     )
   }

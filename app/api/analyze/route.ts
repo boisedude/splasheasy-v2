@@ -42,27 +42,60 @@ export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
 
+    // Check if this is a manual results submission
+    const isManualResults = Boolean(body.manual_results)
+
     // Validate required fields
-    if (!body.image) {
-      return NextResponse.json({ error: 'Image data is required' }, { status: 400 })
+    if (!isManualResults && !body.image) {
+      return NextResponse.json({ error: 'Image data or manual results required' }, { status: 400 })
     }
 
     // Extract optional location, historical data, and user context
     const { latitude, longitude, include_trends = false, user_id, unit_id } = body
 
-    if (!isValidImageFormat(body.image)) {
+    if (!isManualResults && !isValidImageFormat(body.image)) {
       return NextResponse.json(
         { error: 'Invalid image format. Please provide a valid base64 image.' },
         { status: 400 }
       )
     }
 
-    // Check API key
-    if (!process.env.OPENAI_API_KEY) {
-      return NextResponse.json({ error: 'OpenAI API key not configured' }, { status: 500 })
-    }
+    // Prepare analysis result
+    let analysisResult: WaterTestResult
 
-    const systemPrompt = `You are an expert water chemistry analyst with extensive knowledge of different test strip brands. Analyze pool/spa test strips in images and extract chemical readings with brand recognition.
+    if (isManualResults) {
+      // Handle manual input
+      const manualResults = body.manual_results
+      
+      analysisResult = {
+        ph: manualResults.ph,
+        free_chlorine: manualResults.chlorine,
+        total_alkalinity: manualResults.alkalinity,
+        cyanuric_acid: manualResults.cyanuricAcid,
+        total_hardness: manualResults.hardness,
+        confidence_score: 1.0, // Manual entry is 100% confident
+        brand_detected: 'Manual Entry',
+        brand_confidence: 1.0,
+        strip_type: 'Manual Input',
+        notes: manualResults.notes || 'Manually entered test results',
+        readable_strips: true,
+        individual_confidence: {
+          ph: manualResults.ph !== null ? 1.0 : undefined,
+          free_chlorine: manualResults.chlorine !== null ? 1.0 : undefined,
+          total_alkalinity: manualResults.alkalinity !== null ? 1.0 : undefined,
+          cyanuric_acid: manualResults.cyanuricAcid !== null ? 1.0 : undefined,
+          total_hardness: manualResults.hardness !== null ? 1.0 : undefined,
+        }
+      }
+    } else {
+      // Handle image analysis with AI
+      
+      // Check API key
+      if (!process.env.OPENAI_API_KEY) {
+        return NextResponse.json({ error: 'OpenAI API key not configured' }, { status: 500 })
+      }
+
+      const systemPrompt = `You are an expert water chemistry analyst with extensive knowledge of different test strip brands. Analyze pool/spa test strips in images and extract chemical readings with brand recognition.
 
 MULTI-BRAND RECOGNITION:
 Identify the test strip brand from these common manufacturers:
@@ -122,55 +155,55 @@ Return ONLY valid JSON matching this exact structure:
   }
 }`
 
-    // Call GPT-4 Vision API
-    const response = await openai.chat.completions.create({
-      model: 'gpt-4o',
-      messages: [
-        {
-          role: 'system',
-          content: systemPrompt,
-        },
-        {
-          role: 'user',
-          content: [
-            {
-              type: 'text',
-              text: 'Please analyze this water test strip and provide the chemical readings in the specified JSON format.',
-            },
-            {
-              type: 'image_url',
-              image_url: {
-                url: body.image,
-                detail: 'high',
+      // Call GPT-4 Vision API
+      const response = await openai.chat.completions.create({
+        model: 'gpt-4o',
+        messages: [
+          {
+            role: 'system',
+            content: systemPrompt,
+          },
+          {
+            role: 'user',
+            content: [
+              {
+                type: 'text',
+                text: 'Please analyze this water test strip and provide the chemical readings in the specified JSON format.',
               },
-            },
-          ],
-        },
-      ],
-      max_tokens: 1000,
-      temperature: 0.1,
-    })
+              {
+                type: 'image_url',
+                image_url: {
+                  url: body.image,
+                  detail: 'high',
+                },
+              },
+            ],
+          },
+        ],
+        max_tokens: 1000,
+        temperature: 0.1,
+      })
 
-    const aiResponse = response.choices[0]?.message?.content
+      const aiResponse = response.choices[0]?.message?.content
 
-    if (!aiResponse) {
-      return NextResponse.json({ error: 'No response from AI analysis' }, { status: 500 })
-    }
+      if (!aiResponse) {
+        return NextResponse.json({ error: 'No response from AI analysis' }, { status: 500 })
+      }
 
-    // Parse and validate AI response
-    let analysisResult: WaterTestResult
-    try {
-      const parsedResponse = JSON.parse(aiResponse)
-      analysisResult = WaterTestResultSchema.parse(parsedResponse)
-    } catch (parseError) {
-      console.error('Failed to parse AI response:', parseError)
-      return NextResponse.json(
-        {
-          error: 'Failed to parse analysis results',
-          raw_response: aiResponse,
-        },
-        { status: 500 }
-      )
+      // Parse and validate AI response
+      try {
+        const parsedResponse = JSON.parse(aiResponse)
+        analysisResult = WaterTestResultSchema.parse(parsedResponse)
+      } catch (parseError) {
+        console.error('Failed to parse AI response:', parseError)
+        return NextResponse.json(
+          {
+            error: 'Failed to parse analysis results',
+            raw_response: aiResponse,
+          },
+          { status: 500 }
+        )
+      }
     }
 
     // Get weather-based recommendations if location provided
