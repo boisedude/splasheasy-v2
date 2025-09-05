@@ -1,0 +1,27 @@
+{
+  "name": "splasheasy-v2",
+  "version": 2,
+  "project": {
+    "name": "SplashEasy V2",
+    "framework": "nextjs"
+  },
+  "build": {
+    "env": {
+      "NEXT_PUBLIC_SUPABASE_URL": "@supabase-url",
+      "NEXT_PUBLIC_SUPABASE_ANON_KEY": "@supabase-anon-key",
+      "SUPABASE_SERVICE_ROLE_KEY": "@supabase-service-role-key",
+      "OPENAI_API_KEY": "@openai-api-key"
+    }
+  },
+  "env": {
+    "NEXT_PUBLIC_SUPABASE_URL": "@supabase-url",
+    "NEXT_PUBLIC_SUPABASE_ANON_KEY": "@supabase-anon-key",
+    "SUPABASE_SERVICE_ROLE_KEY": "@supabase-service-role-key",
+    "OPENAI_API_KEY": "@openai-api-key"
+  },
+  "functions": {
+    "app/api/analyze-test-strip/route.ts": {
+      "maxDuration": 30
+    }
+  }
+}
